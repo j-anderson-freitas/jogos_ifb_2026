@@ -96,9 +96,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <img
-              src="/images/logo-jis.jpg"
+              src="/images/logo-jis.png"
               alt="JIS IFB"
-              className="w-12 h-12 rounded-full object-cover border-2 border-white/20 flex-shrink-0"
+              className="w-12 h-12 rounded-full object-contain bg-white border-2 border-white/20 flex-shrink-0"
             />
             <div>
               <h2 className="text-base sm:text-lg font-bold font-['Outfit'] flex items-center gap-2">

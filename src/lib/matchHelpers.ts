@@ -28,3 +28,4 @@ export const formatScoreDisplay = (match: Match): { displayScoreA: string; displ
 export const isFutsalModality = (modalityId: string): boolean => {
   return modalityId.toLowerCase().includes('futsal');
 };
+

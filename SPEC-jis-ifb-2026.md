@@ -50,7 +50,7 @@ npm run preview
 jis_IFB_2026/
 ├── public/
 │   └── images/
-│       ├── logo-jis.jpg         # Logo oficial dos Jogos de Integração
+│       ├── logo-jis.png         # Logo oficial dos Jogos de Integração (alta definição)
 │       └── logo-ifb.png         # Logo institucional do IFB
 ├── src/
 │   ├── components/
@@ -141,3 +141,4 @@ jis_IFB_2026/
 3. **Micro-interações (Motion.dev)**:
    - Indicador de aba ativa fluido com `layoutId="activeNavPill"`.
    - Transições de entrada suaves nas mudanças de página e nos cards de partidas.
+

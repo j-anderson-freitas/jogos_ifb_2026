@@ -98,3 +98,4 @@ export function useJISData(): UseJISDataReturn {
     refreshData: loadData,
   };
 }
+

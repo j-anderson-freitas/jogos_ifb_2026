@@ -29,9 +29,9 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
         <div className="text-center space-y-3 mb-6">
           <div className="flex items-center justify-center gap-3 mb-2">
             <img
-              src="/images/logo-jis.jpg"
+              src="/images/logo-jis.png"
               alt="JIS IFB 2026"
-              className="w-16 h-16 rounded-full object-cover border-2 border-white dark:border-slate-700 shadow-md"
+              className="w-16 h-16 rounded-full object-contain bg-white border-2 border-white dark:border-slate-700 shadow-md"
             />
             <img
               src="/images/logo-ifb.png"

@@ -40,9 +40,9 @@ export const M3TopAppBar: React.FC<M3TopAppBarProps> = ({
           <div className="flex items-center gap-3 sm:gap-4 min-w-0">
             {/* Logo dos Jogos de Integração */}
             <img
-              src="/images/logo-jis.jpg"
+              src="/images/logo-jis.png"
               alt="Logo oficial dos Jogos de Integração dos Servidores do IFB"
-              className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover shadow-m3-1 flex-shrink-0 border-2 border-white dark:border-slate-700 bg-white"
+              className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-contain shadow-m3-1 flex-shrink-0 border-2 border-white dark:border-slate-700 bg-white"
             />
 
             {/* Separador vertical elegante */}
