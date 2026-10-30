@@ -128,17 +128,17 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Seletor de Modalidade Coletiva */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
+      {/* Seletor de Modalidade Coletiva (Com quebra de linha fluida para nunca cortar) */}
+      <div className="flex flex-wrap items-center gap-2">
         {collectiveModalities.map((m) => {
           const active = selectedModalityId === m.id;
           return (
             <button
               key={m.id}
               onClick={() => setSelectedModalityId(m.id)}
-              className={`px-4 py-2 rounded-m3-full text-xs sm:text-sm font-semibold whitespace-nowrap transition-all border ${
+              className={`px-3.5 py-1.5 rounded-m3-full text-xs sm:text-sm font-semibold transition-all border ${
                 active
-                  ? 'bg-m3-primary text-white border-m3-primary shadow-sm dark:bg-m3-primary-dark dark:text-black'
+                  ? 'bg-m3-primary text-white border-m3-primary shadow-sm dark:bg-m3-primary-dark dark:text-black font-bold'
                   : 'bg-m3-surface dark:bg-m3-surface-dark text-slate-700 dark:text-slate-300 border-m3-outline-variant hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >

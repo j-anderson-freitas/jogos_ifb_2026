@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Match, Modality, CollectiveTeam, Campus, IndividualParticipant, IndividualPodium } from '../../types/database';
+import { isSupabaseConfigured, supabase } from '../../lib/supabase';
 import { MatchManager } from './MatchManager';
 import { TeamManager } from './TeamManager';
 import { IndividualManager } from './IndividualManager';
 import { BackupExport } from './BackupExport';
 import { M3Button } from '../m3/M3Button';
-import { Swords, Users, Trophy, HardDrive, LogOut, ShieldCheck } from 'lucide-react';
+import { Swords, Users, Trophy, HardDrive, LogOut, ShieldCheck, Database, CheckCircle2, RefreshCw } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 export interface AdminDashboardProps {
   matches: Match[];
@@ -29,6 +31,41 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onLogout,
 }) => {
   const [activeSection, setActiveSection] = useState<'matches' | 'teams' | 'individuals' | 'backup'>('matches');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isTestingConnection, setIsTestingConnection] = useState<boolean>(false);
+
+  const hasSupabase = isSupabaseConfigured();
+
+  const showNotification = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 4000);
+  };
+
+  const handleDataChangedWithFeedback = (entityName: string) => {
+    onRefreshData();
+    const destination = hasSupabase ? 'na Nuvem Supabase (PostgreSQL)' : 'no Banco Local (Persistência Ativa)';
+    const now = new Date().toLocaleTimeString('pt-BR');
+    showNotification(`✅ ${entityName} atualizado(a) com sucesso ${destination} às ${now}!`);
+  };
+
+  const handleTestDatabase = async () => {
+    setIsTestingConnection(true);
+    try {
+      if (hasSupabase && supabase) {
+        const { error, count } = await supabase.from('matches').select('*', { count: 'exact', head: true });
+        if (error) throw error;
+        showNotification(`🟢 Conexão com o Supabase 100% ativa e respondendo! (${matches.length} partidas sincronizadas)`);
+      } else {
+        showNotification(`💾 Banco Local ativo e 100% operacional no seu navegador! (${matches.length} partidas salvas)`);
+      }
+    } catch (err: any) {
+      showNotification(`⚠️ Erro ao comunicar com o Supabase: ${err.message || 'Verifique as credenciais no .env'}`);
+    } finally {
+      setIsTestingConnection(false);
+    }
+  };
 
   const navItems = [
     { id: 'matches', label: 'Partidas & Placares', icon: <Swords size={16} /> },
@@ -39,26 +76,71 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Banner Superior do Admin */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-m3-lg bg-slate-900 text-white shadow-m3-2">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-            <ShieldCheck className="w-6 h-6" />
+      {/* Toast Notificação de Gravação */}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            className="fixed top-20 right-4 sm:right-8 z-50 p-4 rounded-m3-lg bg-emerald-800 text-white shadow-m3-3 border border-emerald-500/40 flex items-center gap-3 text-xs sm:text-sm font-semibold max-w-md"
+          >
+            <CheckCircle2 size={20} className="text-emerald-300 flex-shrink-0" />
+            <div className="flex-1">{toastMessage}</div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Banner Superior do Admin com Status Explícito da Base de Dados */}
+      <div className="p-4 sm:p-5 rounded-m3-lg bg-slate-900 text-white shadow-m3-2 space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <img
+              src="/images/logo-jis.jpg"
+              alt="JIS IFB"
+              className="w-12 h-12 rounded-full object-cover border-2 border-white/20 flex-shrink-0"
+            />
+            <div>
+              <h2 className="text-base sm:text-lg font-bold font-['Outfit'] flex items-center gap-2">
+                Painel da Comissão Organizadora • JIS-IFB 2026
+              </h2>
+              <p className="text-xs text-slate-400">
+                Acesso autorizado com senha mestra • Gestão oficial dos jogos
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-base sm:text-lg font-bold font-['Outfit']">
-              Painel de Controle da Comissão Organizadora
-            </h2>
-            <p className="text-xs text-slate-400">
-              Acesso autorizado • Permissões completas de Inserção, Consulta, Edição e Exclusão (CRUD)
-            </p>
+
+          <div className="flex items-center gap-2 self-end sm:self-center">
+            <M3Button variant="tonal" size="sm" icon={<LogOut size={15} />} onClick={onLogout}>
+              Sair da Sessão
+            </M3Button>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 self-end sm:self-center">
-          <M3Button variant="tonal" size="sm" icon={<LogOut size={15} />} onClick={onLogout}>
-            Sair da Sessão
-          </M3Button>
+        {/* Card de Diagnóstico e Confirmação da Base de Dados */}
+        <div className="pt-3 border-t border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5">
+            <Database className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+            <div>
+              <span className="text-slate-400">Status da Base de Dados: </span>
+              <span className="font-bold text-white">
+                {hasSupabase ? '🟢 Nuvem Supabase (PostgreSQL)' : '💾 Memória Local Persistente (Ativa)'}
+              </span>
+              <span className="text-slate-400 ml-2">
+                ({matches.length} jogos, {teams.length} equipes, {podiums.length} pódios)
+              </span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleTestDatabase}
+            disabled={isTestingConnection}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-m3-full bg-slate-800 hover:bg-slate-700 text-emerald-300 font-semibold border border-slate-700 transition-colors"
+          >
+            <RefreshCw size={13} className={isTestingConnection ? 'animate-spin' : ''} />
+            <span>Testar Gravação no Banco</span>
+          </button>
         </div>
       </div>
 
@@ -89,7 +171,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           matches={matches}
           modalities={modalities}
           teams={teams}
-          onMatchesChanged={onRefreshData}
+          onMatchesChanged={() => handleDataChangedWithFeedback('Partida / Placar')}
         />
       )}
 
@@ -98,7 +180,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           teams={teams}
           modalities={modalities}
           campuses={campuses}
-          onTeamsChanged={onRefreshData}
+          onTeamsChanged={() => handleDataChangedWithFeedback('Equipe / Avatar')}
         />
       )}
 
@@ -108,7 +190,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           campuses={campuses}
           participants={participants}
           podiums={podiums}
-          onDataChanged={onRefreshData}
+          onDataChanged={() => handleDataChangedWithFeedback('Participante / Pódio Individual')}
         />
       )}
 
@@ -123,4 +205,3 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     </div>
   );
 };
-

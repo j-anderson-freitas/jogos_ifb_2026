@@ -27,8 +27,17 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
     <div className="max-w-md mx-auto my-12 px-4">
       <M3Card variant="elevated" className="p-6 sm:p-8">
         <div className="text-center space-y-3 mb-6">
-          <div className="w-14 h-14 mx-auto rounded-full bg-m3-primary/10 dark:bg-m3-primary/20 flex items-center justify-center text-m3-primary dark:text-m3-primary-dark">
-            <Shield className="w-8 h-8" />
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <img
+              src="/images/logo-jis.jpg"
+              alt="JIS IFB 2026"
+              className="w-16 h-16 rounded-full object-cover border-2 border-white dark:border-slate-700 shadow-md"
+            />
+            <img
+              src="/images/logo-ifb.png"
+              alt="Instituto Federal de Brasília"
+              className="h-14 object-contain"
+            />
           </div>
           <h2 className="text-xl sm:text-2xl font-bold font-['Outfit'] text-slate-900 dark:text-white">
             Acesso da Comissão Organizadora

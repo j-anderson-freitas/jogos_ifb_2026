@@ -333,76 +333,9 @@ export const INITIAL_MATCHES: Match[] = [
   { id: 'match-han-2', modality_id: 'handebol-misto', phase: 'Fase de Grupos', group_name: 'Chave Única', team_a_id: 'han-x-gatopreto', team_b_id: 'han-x-semdidatica', team_a_name: 'Gato Preto CCEI', team_b_name: 'Sem Didática Para Jogar', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Ginásio Poliesportivo', round: 1 },
 ];
 
-export const INITIAL_REGULATIONS: Regulation[] = [
-  {
-    id: 1,
-    section_type: 'Capítulo',
-    section_number: 'I',
-    title: 'Das Disposições Preliminares e dos Objetivos',
-    content: 'Art. 1º Este Regulamento é o conjunto de disposições que regem as competições e tem por objetivo disciplinar a organização, as atividades e os eventos esportivos referentes aos Jogos de Integração dos Servidores do Instituto Federal de Brasília (IFB).\n\nArt. 2º Os Jogos são promovidos pela Pró-Reitoria de Gestão de Pessoas (PRGP) com o objetivo de promover a integração, a socialização, o bem-estar, o senso de pertencimento e o fortalecimento do espírito comunitário entre os servidores e colaboradores do IFB.',
-    order_index: 1,
-  },
-  {
-    id: 2,
-    section_type: 'Capítulo',
-    section_number: 'II',
-    title: 'Das Finalidades',
-    content: 'Art. 3º São finalidades dos Jogos de Integração dos Servidores do IFB:\nI – incentivar a prática regular de atividades físicas e esportivas, em consonância com a Política de Atenção à Saúde e Qualidade de Vida no Trabalho (QVT);\nII – contribuir para a promoção da saúde física e mental;\nIII – estimular a cooperação, o respeito mútuo e o espírito de equipe;\nIV – promover a integração intercampi e entre unidades da Reitoria.',
-    order_index: 2,
-  },
-  {
-    id: 3,
-    section_type: 'Capítulo',
-    section_number: 'VI',
-    title: 'Do Cronograma e da Dinâmica dos Jogos',
-    content: 'Art. 13. Os Jogos de Integração serão divididos em 2 (duas) etapas principais:\nI – Etapa "Primeiro Lance": voltada exclusivamente às modalidades de mesa e raciocínio (Damas, Tênis de Mesa e Xadrez), realizada em ambientes controlados nos campi com o objetivo de antecipar o engajamento comunitário;\nII – Etapa Geral de Integração: realizada em alusão ao Mês do Servidor Público Federal, concentrando as modalidades coletivas, de areia, quadra, natação e a corrida/caminhada.',
-    order_index: 3,
-  },
-  {
-    id: 4,
-    section_type: 'Capítulo',
-    section_number: 'VIII',
-    title: 'Dos Sistemas de Disputa e W.O.',
-    content: 'Art. 17. Os sistemas de disputa observarão fase de grupos seguida de semifinais e finais em eliminatória simples para torneios coletivos.\n\nArt. 18. O não comparecimento de equipe ou atleta individual no horário programado na tabela, tolerando-se o atraso máximo de 15 (quinze) minutos para o primeiro jogo da rodada, caracterizará W.O. (Walkover).',
-    order_index: 4,
-  },
-  {
-    id: 5,
-    section_type: 'Anexo',
-    section_number: 'V',
-    title: 'Regras Específicas: Futsal',
-    modality_id: 'futsal-masc',
-    content: '1. Inscrição: Mínimo de 5 atletas por equipe. Em quadra: 5 atletas (1 goleiro e 4 de linha).\n2. Tempo de Jogo: 2 tempos de 15 minutos corridos (cronômetro trava nos 2 minutos finais do segundo tempo).\n3. Sistema de Pontuação na Fase de Grupos:\n- Vitória no tempo regulamentar: 3 pontos.\n- Empate: cada equipe recebe 1 ponto, sendo obrigatória a disputa de pênaltis.\n- Vitória nos pênaltis: +1 ponto adicional (totalizando 2 pontos).\n4. Playoff de 2ºs Colocados: O 2º e 3º melhores segundos jogam o Playoff Preliminar. O vencedor enfrenta o 1º melhor segundo pela 4ª vaga da Semifinal.',
-    order_index: 5,
-  },
-  {
-    id: 6,
-    section_type: 'Anexo',
-    section_number: 'XI',
-    title: 'Regras Específicas: Vôlei (Quadra Misto)',
-    modality_id: 'volei-misto',
-    content: '1. Composição: Misto com presença obrigatória de 6 atletas em quadra sendo no mínimo 2 mulheres durante toda a partida.\n2. Pontuação: Partida disputada em melhor de 3 sets (dois primeiros até 25 pontos e tie-break até 15 pontos, com vantagem mínima de 2 pontos).\n3. Sistema de Disputa: 2 grupos de 4 equipes. Classificam-se as 2 melhores de cada grupo para Semifinais cruzadas (1ºA x 2ºB e 1ºB x 2ºA), disputa de 3º lugar e Final.',
-    order_index: 6,
-  },
-  {
-    id: 7,
-    section_type: 'Anexo',
-    section_number: 'IX',
-    title: 'Regras Específicas: Queimada (Mista)',
-    modality_id: 'queimada-mista',
-    content: '1. Composição: 8 atletas titulares em quadra com no mínimo 3 mulheres.\n2. Tempo de Jogo: 15 minutos corridos. Vence quem queimar todos ou tiver mais atletas ativos.\n3. Cemitério e Retorno: Inicia com 1 atleta no cemitério (pivô). O atleta no cemitério que queimar um adversário no primeiro arremesso tem o direito de retornar à quadra principal.\n4. Disputa: Chave única de 6 equipes, classificando as 4 melhores para Semifinais (1ºx4º e 2ºx3º), 3º lugar e Final.',
-    order_index: 7,
-  },
-  {
-    id: 8,
-    section_type: 'Anexo',
-    section_number: 'VII',
-    title: 'Regras Específicas: Handebol (Misto Adaptado)',
-    modality_id: 'handebol-misto',
-    content: '1. Composição: 7 jogadores (1 goleiro e 6 atletas de linha: 3 homens e 3 mulheres).\n2. Dinâmica Adaptada de Meia-Quadra: 3 mulheres atacando e 3 defendendo em uma metade, e 3 homens na outra metade. Proibido cruzar o meio de quadra nos primeiros 10 minutos.\n3. Troca aos 5 minutos de função (ataque x defesa). A partir da terceira troca, a linha divisória é liberada para jogo livre.',
-    order_index: 8,
-  },
-];
+import fullRegulations from './fullRegulations.json';
+
+export const INITIAL_REGULATIONS: Regulation[] = fullRegulations as Regulation[];
 
 export const INITIAL_NOTICES: Notice[] = [
   {

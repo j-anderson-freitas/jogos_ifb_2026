@@ -33,11 +33,11 @@ import { AdminDashboard } from './components/admin/AdminDashboard';
 import { Trophy, HeartHandshake, Shield, Sparkles } from 'lucide-react';
 
 export const App: React.FC = () => {
-  // Theme Dark / Light
+  // Theme Dark / Light (Padrão: Claro)
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem('jis_theme');
     if (saved) return saved === 'dark';
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return false; // Padrão: Tema Claro
   });
 
   // Navigation
