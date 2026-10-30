@@ -1,26 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import {
-  Campus,
-  Modality,
-  CollectiveTeam,
-  Match,
-  IndividualParticipant,
-  IndividualPodium,
-  Regulation,
-  Notice,
-} from './types/database';
-import {
-  getCampuses,
-  getModalities,
-  getTeams,
-  getMatches,
-  getRegulations,
-  getNotices,
-  getParticipants,
-  getPodiums,
-  subscribeToMatches,
-} from './lib/supabase';
+import { useJISData } from './hooks/useJISData';
 import { M3TopAppBar } from './components/m3/M3TopAppBar';
 import { LiveScoreboard } from './components/public/LiveScoreboard';
 import { StandingsTable } from './components/public/StandingsTable';
@@ -30,35 +10,35 @@ import { ScheduleView } from './components/public/ScheduleView';
 import { RegulationViewer } from './components/public/RegulationViewer';
 import { AdminLogin } from './components/admin/AdminLogin';
 import { AdminDashboard } from './components/admin/AdminDashboard';
-import { Trophy, HeartHandshake, Shield, Sparkles } from 'lucide-react';
+import { Trophy } from 'lucide-react';
 
 export const App: React.FC = () => {
-  // Theme Dark / Light (Padrão: Claro)
+  // Tema Dark / Light (Padrão: Claro)
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
-    const saved = localStorage.getItem('jis_theme');
-    if (saved) return saved === 'dark';
-    return false; // Padrão: Tema Claro
+    return localStorage.getItem('jis_theme') === 'dark';
   });
 
-  // Navigation
+  // Navegação e Autenticação da Comissão
   const [isAdminView, setIsAdminView] = useState<boolean>(false);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
     return sessionStorage.getItem('jis_admin_auth') === 'true';
   });
   const [activeTab, setActiveTab] = useState<string>('jogos');
 
-  // App Data
-  const [campuses, setCampuses] = useState<Campus[]>([]);
-  const [modalities, setModalities] = useState<Modality[]>([]);
-  const [teams, setTeams] = useState<CollectiveTeam[]>([]);
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [regulations, setRegulations] = useState<Regulation[]>([]);
-  const [notices, setNotices] = useState<Notice[]>([]);
-  const [participants, setParticipants] = useState<IndividualParticipant[]>([]);
-  const [podiums, setPodiums] = useState<IndividualPodium[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  // Dados reativos consolidados via Custom Hook
+  const {
+    campuses,
+    modalities,
+    teams,
+    matches,
+    regulations,
+    participants,
+    podiums,
+    isLoading,
+    refreshData,
+  } = useJISData();
 
-  // Apply dark mode class to root HTML
+  // Aplicação da classe dark no HTML raiz
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
@@ -69,47 +49,6 @@ export const App: React.FC = () => {
     }
   }, [isDarkMode]);
 
-  // Load all initial data
-  const loadData = async () => {
-    try {
-      const [c, m, t, mat, r, n, part, pod] = await Promise.all([
-        getCampuses(),
-        getModalities(),
-        getTeams(),
-        getMatches(),
-        getRegulations(),
-        getNotices(),
-        getParticipants(),
-        getPodiums(),
-      ]);
-      setCampuses(c);
-      setModalities(m);
-      setTeams(t);
-      setMatches(mat);
-      setRegulations(r);
-      setNotices(n);
-      setParticipants(part);
-      setPodiums(pod);
-    } catch (err) {
-      console.error('Erro ao carregar dados:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadData();
-
-    // Subscribe to Realtime updates
-    const unsubscribe = subscribeToMatches((freshMatches) => {
-      setMatches(freshMatches);
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, []);
-
   const handleLogout = () => {
     sessionStorage.removeItem('jis_admin_auth');
     setIsAdminAuthenticated(false);
@@ -118,27 +57,31 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-m3-surface text-slate-800 dark:bg-m3-surface-dark dark:text-slate-100 transition-colors">
-      {/* Top App Bar M3 */}
+      {/* Top App Bar M3 com navegação fluida */}
       <M3TopAppBar
         isAdminView={isAdminView}
-        onToggleAdmin={() => setIsAdminView(!isAdminView)}
+        onToggleAdmin={() => setIsAdminView((prev) => !prev)}
         isDarkMode={isDarkMode}
-        onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
+        onToggleDarkMode={() => setIsDarkMode((prev) => !prev)}
         activeTab={activeTab}
         onTabChange={(tab) => setActiveTab(tab)}
       />
 
-      {/* Main Content Area */}
+      {/* Conteúdo Principal */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
+          <div
+            role="status"
+            aria-live="polite"
+            className="flex flex-col items-center justify-center min-h-[50vh] gap-3"
+          >
             <div className="w-10 h-10 border-4 border-m3-primary border-t-transparent rounded-full animate-spin" />
             <span className="text-sm font-semibold text-slate-500">
               Carregando Jogos de Integração JIS-IFB 2026...
             </span>
           </div>
         ) : isAdminView ? (
-          /* Área da Comissão / Admin */
+          /* Painel da Comissão com Acesso Controlado */
           !isAdminAuthenticated ? (
             <AdminLogin onLoginSuccess={() => setIsAdminAuthenticated(true)} />
           ) : (
@@ -149,19 +92,22 @@ export const App: React.FC = () => {
               campuses={campuses}
               participants={participants}
               podiums={podiums}
-              onRefreshData={loadData}
+              onRefreshData={refreshData}
               onLogout={handleLogout}
             />
           )
         ) : (
           /* Portal Público dos Jogos */
           <AnimatePresence mode="wait">
-            <motion.div
+            <motion.section
               key={activeTab}
-              initial={{ opacity: 0, y: 10 }}
+              id={`tabpanel-${activeTab}`}
+              role="tabpanel"
+              aria-labelledby={`tab-${activeTab}`}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.22, ease: 'easeOut' }}
             >
               {activeTab === 'jogos' && (
                 <LiveScoreboard
@@ -208,12 +154,12 @@ export const App: React.FC = () => {
               {activeTab === 'regulamento' && (
                 <RegulationViewer regulations={regulations} />
               )}
-            </motion.div>
+            </motion.section>
           </AnimatePresence>
         )}
       </main>
 
-      {/* Footer Oficial */}
+      {/* Footer Institucional Oficial */}
       <footer className="mt-12 bg-m3-surface-container-high dark:bg-m3-surface-container-high-dark border-t border-m3-outline-variant/30 py-8 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-3">
           <div className="flex items-center justify-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-200">
@@ -221,15 +167,10 @@ export const App: React.FC = () => {
             <span>Jogos de Integração dos Servidores do IFB • JIS-IFB 2026</span>
           </div>
           <p className="text-xs text-slate-500 max-w-xl mx-auto">
-            Promovido pela Pró-Reitoria de Gestão de Pessoas (PRGP) e Diretoria de Qualidade de Vida e Desenvolvimento de Pessoas (DRDP).
-            Integração, saúde e espírito comunitário entre os 10 Campi e a Reitoria do Instituto Federal de Brasília.
+            Promovido pela Pró-Reitoria de Gestão de Pessoas (PRGP)
           </p>
           <div className="text-[11px] text-slate-400 pt-2 border-t border-m3-outline-variant/20 flex flex-col sm:flex-row items-center justify-center gap-4">
             <span>© 2026 Instituto Federal de Brasília (IFB)</span>
-            <span>•</span>
-            <span>Material Design 3 & Motion.dev</span>
-            <span>•</span>
-            <span>Supabase Cloud & Vercel</span>
           </div>
         </div>
       </footer>
@@ -238,4 +179,3 @@ export const App: React.FC = () => {
 };
 
 export default App;
-

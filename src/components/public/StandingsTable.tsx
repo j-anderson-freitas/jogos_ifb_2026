@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
-import { Match, Modality, CollectiveTeam, StandingRow } from '../../types/database';
+import { motion } from 'motion/react';
+import { Match, Modality, CollectiveTeam } from '../../types/database';
 import { TeamAvatar } from '../avatars/TeamAvatar';
 import { M3Card } from '../m3/M3Card';
 import { Trophy, HelpCircle } from 'lucide-react';
+import { computeGroupStandings } from '../../lib/standingsCalculator';
+import { isFutsalModality } from '../../lib/matchHelpers';
 
 export interface StandingsTableProps {
   matches: Match[];
@@ -22,121 +25,33 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({
 
   const selectedModality = modalities.find((m) => m.id === selectedModalityId);
   const modalityTeams = teams.filter((t) => t.modality_id === selectedModalityId);
-  const modalityMatches = matches.filter(
-    (m) => m.modality_id === selectedModalityId && m.status === 'Finalizado'
-  );
+  const isFutsal = isFutsalModality(selectedModalityId);
 
   // Agrupar equipes por chave/grupo (ex: Grupo A, Grupo B, Triangular, Chave Única)
-  const groups: { [key: string]: CollectiveTeam[] } = {};
+  const groups: Record<string, CollectiveTeam[]> = {};
   modalityTeams.forEach((t) => {
     const grp = t.group_name || 'Classificação Geral';
     if (!groups[grp]) groups[grp] = [];
     groups[grp].push(t);
   });
 
-  // Função para calcular a tabela de classificação de um grupo específico
-  const computeGroupStandings = (groupName: string, groupTeams: CollectiveTeam[]): StandingRow[] => {
-    const table: { [teamId: string]: StandingRow } = {};
-
-    groupTeams.forEach((t) => {
-      table[t.id] = {
-        team_id: t.id,
-        team_name: t.name,
-        campus_id: t.campus_id,
-        avatar_key: t.avatar_key,
-        played: 0,
-        won: 0,
-        drawn: 0,
-        lost: 0,
-        penalties_won: 0,
-        goals_for: 0,
-        goals_against: 0,
-        goal_diff: 0,
-        points: 0,
-      };
-    });
-
-    const isFutsal = selectedModalityId.includes('futsal');
-
-    modalityMatches
-      .filter((m) => m.group_name === groupName || (!m.group_name && groupName === 'Classificação Geral'))
-      .forEach((m) => {
-        const teamA = table[m.team_a_id || ''];
-        const teamB = table[m.team_b_id || ''];
-        if (!teamA || !teamB) return;
-
-        teamA.played += 1;
-        teamB.played += 1;
-        teamA.goals_for += m.score_a;
-        teamA.goals_against += m.score_b;
-        teamB.goals_for += m.score_b;
-        teamB.goals_against += m.score_a;
-
-        if (m.score_a > m.score_b) {
-          teamA.won += 1;
-          teamA.points += 3;
-          teamB.lost += 1;
-        } else if (m.score_b > m.score_a) {
-          teamB.won += 1;
-          teamB.points += 3;
-          teamA.lost += 1;
-        } else {
-          // Empate
-          teamA.drawn += 1;
-          teamB.drawn += 1;
-
-          if (isFutsal) {
-            // Regulamento Oficial: Vitória nos pênaltis = 2 pts, Derrota nos pênaltis = 1 pt
-            if ((m.score_penalties_a || 0) > (m.score_penalties_b || 0)) {
-              teamA.penalties_won = (teamA.penalties_won || 0) + 1;
-              teamA.points += 2;
-              teamB.points += 1;
-            } else if ((m.score_penalties_b || 0) > (m.score_penalties_a || 0)) {
-              teamB.penalties_won = (teamB.penalties_won || 0) + 1;
-              teamB.points += 2;
-              teamA.points += 1;
-            } else {
-              teamA.points += 1;
-              teamB.points += 1;
-            }
-          } else {
-            teamA.points += 1;
-            teamB.points += 1;
-          }
-        }
-      });
-
-    // Calcular Saldo de Gols e Ordenar pelos critérios oficiais
-    const rows = Object.values(table).map((r) => ({
-      ...r,
-      goal_diff: r.goals_for - r.goals_against,
-    }));
-
-    return rows.sort((a, b) => {
-      // 1. Pontos
-      if (b.points !== a.points) return b.points - a.points;
-      // 2. Número de Vitórias
-      if (b.won !== a.won) return b.won - a.won;
-      // 3. Saldo de Gols / Pontos
-      if (b.goal_diff !== a.goal_diff) return b.goal_diff - a.goal_diff;
-      // 4. Gols / Pontos Pró
-      if (b.goals_for !== a.goals_for) return b.goals_for - a.goals_for;
-      // 5. Menor número de gols sofridos
-      return a.goals_against - b.goals_against;
-    });
-  };
-
   return (
     <div className="space-y-6">
       {/* Seletor de Modalidade Coletiva (Com quebra de linha fluida para nunca cortar) */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div
+        role="tablist"
+        aria-label="Modalidades coletivas para classificação"
+        className="flex flex-wrap items-center gap-2"
+      >
         {collectiveModalities.map((m) => {
           const active = selectedModalityId === m.id;
           return (
             <button
               key={m.id}
+              role="tab"
+              aria-selected={active}
               onClick={() => setSelectedModalityId(m.id)}
-              className={`px-3.5 py-1.5 rounded-m3-full text-xs sm:text-sm font-semibold transition-all border ${
+              className={`px-3.5 py-1.5 rounded-m3-full text-xs sm:text-sm font-semibold transition-all border focus-visible:ring-2 focus-visible:ring-m3-primary focus-visible:outline-none ${
                 active
                   ? 'bg-m3-primary text-white border-m3-primary shadow-sm dark:bg-m3-primary-dark dark:text-black font-bold'
                   : 'bg-m3-surface dark:bg-m3-surface-dark text-slate-700 dark:text-slate-300 border-m3-outline-variant hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -162,7 +77,7 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({
       {/* Tabelas de Classificação por Grupo */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {Object.entries(groups).map(([groupName, gTeams]) => {
-          const standings = computeGroupStandings(groupName, gTeams);
+          const standings = computeGroupStandings(groupName, gTeams, matches, isFutsal);
           return (
             <M3Card key={groupName} variant="elevated" className="overflow-hidden">
               <div className="flex items-center justify-between mb-4 pb-2.5 border-b border-m3-outline-variant/30">
@@ -179,18 +94,19 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({
 
               <div className="overflow-x-auto -mx-4 sm:-mx-5">
                 <table className="w-full text-left text-xs sm:text-sm">
+                  <caption className="sr-only">Tabela de classificação para {groupName}</caption>
                   <thead>
                     <tr className="bg-slate-100/70 dark:bg-slate-800/70 text-slate-500 dark:text-slate-400 font-semibold border-b border-m3-outline-variant/30">
-                      <th className="py-2.5 pl-4 sm:pl-5 pr-2 w-10">Pos</th>
-                      <th className="py-2.5 px-3">Equipe</th>
-                      <th className="py-2.5 px-2 text-center" title="Pontos">PTS</th>
-                      <th className="py-2.5 px-2 text-center" title="Jogos">J</th>
-                      <th className="py-2.5 px-2 text-center" title="Vitórias">V</th>
-                      <th className="py-2.5 px-2 text-center" title="Empates">E</th>
-                      <th className="py-2.5 px-2 text-center" title="Derrotas">D</th>
-                      <th className="py-2.5 px-2 text-center hidden sm:table-cell" title="Gols/Pontos Pró">GP</th>
-                      <th className="py-2.5 px-2 text-center hidden sm:table-cell" title="Gols/Pontos Contra">GC</th>
-                      <th className="py-2.5 pr-4 sm:pr-5 pl-2 text-center font-bold" title="Saldo">SG</th>
+                      <th scope="col" className="py-2.5 pl-4 sm:pl-5 pr-2 w-10 text-center">Pos</th>
+                      <th scope="col" className="py-2.5 px-3">Equipe</th>
+                      <th scope="col" className="py-2.5 px-2 text-center" title="Pontos">PTS</th>
+                      <th scope="col" className="py-2.5 px-2 text-center" title="Jogos">J</th>
+                      <th scope="col" className="py-2.5 px-2 text-center" title="Vitórias">V</th>
+                      <th scope="col" className="py-2.5 px-2 text-center" title="Empates">E</th>
+                      <th scope="col" className="py-2.5 px-2 text-center" title="Derrotas">D</th>
+                      <th scope="col" className="py-2.5 px-2 text-center hidden sm:table-cell" title="Gols/Pontos Pró">GP</th>
+                      <th scope="col" className="py-2.5 px-2 text-center hidden sm:table-cell" title="Gols/Pontos Contra">GC</th>
+                      <th scope="col" className="py-2.5 pr-4 sm:pr-5 pl-2 text-center font-bold" title="Saldo">SG</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-m3-outline-variant/20">
@@ -249,4 +165,3 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({
     </div>
   );
 };
-
