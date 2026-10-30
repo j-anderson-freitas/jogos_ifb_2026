@@ -420,3 +420,4 @@ export const INITIAL_NOTICES: Notice[] = [
     published_at: '2026-10-30T11:00:00Z',
   },
 ];
+

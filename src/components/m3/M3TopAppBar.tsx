@@ -122,3 +122,4 @@ export const M3TopAppBar: React.FC<M3TopAppBarProps> = ({
     </header>
   );
 };
+

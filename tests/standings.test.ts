@@ -33,3 +33,4 @@ test('Desempate: Saldo de Gols', () => {
   const teamB = { goalsFor: 10, goalsAgainst: 3, diff: 7 };
   assert.ok(teamA.diff > teamB.diff, 'Team A deve ficar à frente pelo saldo de gols');
 });
+

@@ -413,3 +413,4 @@ export const IndividualManager: React.FC<IndividualManagerProps> = ({
     </div>
   );
 };
+

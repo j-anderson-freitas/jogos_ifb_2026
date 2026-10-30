@@ -198,3 +198,4 @@ INSERT INTO regulations (section_type, section_number, title, content, modality_
   ('Anexo', 'XI', 'Vôlei de Quadra Misto', 'Equipes com 6 atletas em quadra (mínimo 2 mulheres). Melhor de 3 sets (25/15 pontos, vantagem de 2 pontos). Semifinais cruzadas.', 'volei-misto', 6),
   ('Anexo', 'IX', 'Queimada Mista', '8 atletas titulares (mínimo 3 mulheres). 15 minutos de tempo regulamentar. Sistema cemitério com ressurreição ao queimar de primeira.', 'queimada-mista', 7)
 ON CONFLICT DO NOTHING;
+

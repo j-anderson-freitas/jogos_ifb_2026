@@ -32,3 +32,4 @@ export const M3Card: React.FC<M3CardProps> = ({
     </motion.div>
   );
 };
+

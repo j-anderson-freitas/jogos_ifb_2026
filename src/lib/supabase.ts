@@ -352,3 +352,4 @@ export function subscribeToMatches(onUpdate: (matches: Match[]) => void): () => 
     localMatchListeners.delete(onUpdate);
   };
 }
+

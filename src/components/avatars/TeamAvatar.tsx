@@ -294,3 +294,4 @@ export const TeamAvatar: React.FC<TeamAvatarProps> = ({
     </div>
   );
 };
+

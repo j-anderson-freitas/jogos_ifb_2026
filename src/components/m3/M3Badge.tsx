@@ -42,3 +42,4 @@ export const M3Badge: React.FC<M3BadgeProps> = ({ status, className = '' }) => {
     </span>
   );
 };
+

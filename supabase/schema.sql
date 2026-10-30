@@ -143,3 +143,4 @@ CREATE POLICY "Allow Write Regulations" ON regulations FOR ALL USING (true);
 
 -- Habilitar Realtime para a tabela de Matches
 ALTER PUBLICATION supabase_realtime ADD TABLE matches;
+

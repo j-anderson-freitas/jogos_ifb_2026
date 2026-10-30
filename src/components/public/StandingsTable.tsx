@@ -249,3 +249,4 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({
     </div>
   );
 };
+

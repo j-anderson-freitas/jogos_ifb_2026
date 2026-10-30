@@ -209,3 +209,4 @@ export const LiveScoreboard: React.FC<LiveScoreboardProps> = ({
     </div>
   );
 };
+

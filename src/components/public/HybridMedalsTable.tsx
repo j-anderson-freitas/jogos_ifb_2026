@@ -300,3 +300,4 @@ export const HybridMedalsTable: React.FC<HybridMedalsTableProps> = ({
     </div>
   );
 };
+
