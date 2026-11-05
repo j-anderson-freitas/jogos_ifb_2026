@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Match, Modality, CollectiveTeam } from '../../types/database';
+import { Match, Modality, CollectiveTeam, IFB_UNITS } from '../../types/database';
 import { saveMatch, deleteMatch } from '../../lib/supabase';
 import { TeamAvatar } from '../avatars/TeamAvatar';
 import { M3Button } from '../m3/M3Button';
 import { M3Card } from '../m3/M3Card';
 import { M3Dialog } from '../m3/M3Dialog';
 import { M3Badge } from '../m3/M3Badge';
-import { Plus, Search, Trash2, Edit3, Save, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Plus, Search, Trash2, Edit3, AlertTriangle, Calendar, MapPin } from 'lucide-react';
 
 export interface MatchManagerProps {
   matches: Match[];
@@ -40,10 +40,18 @@ export const MatchManager: React.FC<MatchManagerProps> = ({
     status: 'Agendado',
     score_a: 0,
     score_b: 0,
-    match_date: 'A definir',
-    match_time: 'A definir',
-    venue: 'Ginásio Poliesportivo',
+    match_date: '10/11/2026',
+    match_time: '14:00',
+    venue: IFB_UNITS[0],
   });
+
+  // Equipes disponíveis para a modalidade selecionada no form de criação
+  const creationAvailableTeams = teams.filter((t) => t.modality_id === newMatch.modality_id);
+
+  // Equipes disponíveis para a modalidade da partida em edição
+  const editingAvailableTeams = editingMatch
+    ? teams.filter((t) => t.modality_id === editingMatch.modality_id)
+    : [];
 
   const filteredMatches = matches.filter((m) => {
     const matchModality = filterModality === 'all' || m.modality_id === filterModality;
@@ -77,9 +85,9 @@ export const MatchManager: React.FC<MatchManagerProps> = ({
       score_penalties_b: newMatch.score_penalties_b,
       sets_detail: newMatch.sets_detail,
       status: (newMatch.status as any) || 'Agendado',
-      match_date: newMatch.match_date || 'A definir',
-      match_time: newMatch.match_time || 'A definir',
-      venue: newMatch.venue || 'Ginásio Poliesportivo',
+      match_date: newMatch.match_date || '10/11/2026',
+      match_time: newMatch.match_time || '14:00',
+      venue: newMatch.venue || IFB_UNITS[0],
     };
 
     await saveMatch(matchToSave);
@@ -103,67 +111,50 @@ export const MatchManager: React.FC<MatchManagerProps> = ({
     onMatchesChanged();
   };
 
-  // Quick Score Update
-  const updateScoreQuick = async (match: Match, deltaA: number, deltaB: number) => {
-    const updated: Match = {
-      ...match,
-      score_a: Math.max(0, match.score_a + deltaA),
-      score_b: Math.max(0, match.score_b + deltaB),
-    };
-    await saveMatch(updated);
-    onMatchesChanged();
-  };
-
-  const setMatchStatusQuick = async (match: Match, newStatus: Match['status']) => {
-    const updated: Match = { ...match, status: newStatus };
-    await saveMatch(updated);
-    onMatchesChanged();
-  };
-
-  const getTeamAvatar = (teamId?: string) => {
-    const t = teams.find((item) => item.id === teamId);
-    return t ? t.avatar_key : '';
+  // Helper para máscara e conversão de data dd/mm/aaaa
+  const handleDateChange = (val: string, isEditing = false) => {
+    if (isEditing && editingMatch) {
+      setEditingMatch({ ...editingMatch, match_date: val });
+    } else {
+      setNewMatch({ ...newMatch, match_date: val });
+    }
   };
 
   return (
     <div className="space-y-6">
-      {/* Barra de Ações do Administrador */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-m3-surface-container dark:bg-m3-surface-container-dark p-4 rounded-m3-lg">
-        <div>
-          <h2 className="text-lg font-bold font-['Outfit'] text-slate-900 dark:text-white">
-            Gerenciamento de Partidas e Placares (CRUD)
-          </h2>
-          <p className="text-xs text-slate-500">
-            {matches.length} partidas registradas no sistema
-          </p>
+      {/* Controles de Busca e Inserção */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-m3-surface-container dark:bg-m3-surface-container-dark p-4 rounded-m3-lg border border-m3-outline-variant/30">
+        <div className="flex items-center gap-2 flex-1 max-w-md">
+          <div className="relative w-full">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Buscar equipe, praça ou confronto..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-3 py-1.5 rounded-m3-full bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-m3-primary text-slate-900 dark:text-white"
+            />
+          </div>
         </div>
 
-        <M3Button
-          variant="filled"
-          icon={<Plus size={16} />}
-          onClick={() => setIsCreateModalOpen(true)}
-        >
-          Inserir Nova Partida
-        </M3Button>
+        <div className="flex items-center gap-2">
+          <M3Button
+            variant="filled"
+            size="sm"
+            icon={<Plus size={16} />}
+            onClick={() => setIsCreateModalOpen(true)}
+          >
+            Inserir Partida
+          </M3Button>
+        </div>
       </div>
 
-      {/* Filtros e Busca */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-m3-surface-container-low dark:bg-m3-surface-container-low-dark p-3.5 rounded-m3-md">
-        <div className="relative">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Buscar por equipe ou local..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 rounded-m3-full bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-m3-primary text-slate-900 dark:text-white"
-          />
-        </div>
-
+      {/* Filtros em Linha */}
+      <div className="flex flex-wrap items-center gap-2">
         <select
           value={filterModality}
           onChange={(e) => setFilterModality(e.target.value)}
-          className="text-xs sm:text-sm rounded-m3-full bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-m3-primary"
+          className="text-xs font-semibold rounded-m3-full bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-m3-primary text-slate-800 dark:text-slate-200"
         >
           <option value="all">Todas as Modalidades</option>
           {modalities.map((m) => (
@@ -176,130 +167,63 @@ export const MatchManager: React.FC<MatchManagerProps> = ({
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
-          className="text-xs sm:text-sm rounded-m3-full bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-m3-primary"
+          className="text-xs font-semibold rounded-m3-full bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-m3-primary text-slate-800 dark:text-slate-200"
         >
           <option value="all">Todos os Status</option>
           <option value="Agendado">Agendado</option>
           <option value="Ao Vivo">Ao Vivo</option>
           <option value="Finalizado">Finalizado</option>
-          <option value="Adiado">Adiado</option>
         </select>
       </div>
 
       {/* Lista de Partidas com Ações CRUD */}
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filteredMatches.map((m) => (
-          <M3Card key={m.id} variant="elevated" className="p-4 sm:p-5">
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-              {/* Informações da Partida */}
-              <div className="space-y-1 min-w-[220px]">
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-xs sm:text-sm text-m3-primary dark:text-m3-primary-dark">
-                    {modalities.find((mod) => mod.id === m.modality_id)?.name}
-                  </span>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                    {m.group_name || m.phase}
-                  </span>
-                </div>
-                <div className="text-xs text-slate-500 flex items-center gap-2">
-                  <span>📅 {m.match_date}</span>
-                  <span>⏰ {m.match_time}</span>
-                  <span>📍 {m.venue}</span>
-                </div>
+          <M3Card key={m.id} variant="elevated" className="border border-m3-outline-variant/30 flex flex-col justify-between">
+            <div className="flex items-center justify-between text-xs pb-2 border-b border-m3-outline-variant/30">
+              <span className="font-bold text-m3-primary dark:text-m3-primary-dark">
+                {m.group_name || m.phase}
+              </span>
+              <M3Badge status={m.status} />
+            </div>
+
+            <div className="py-3 flex items-center justify-between gap-3">
+              <div className="flex-1 font-bold text-sm text-slate-900 dark:text-white truncate">
+                {m.team_a_name}
+              </div>
+              <div className="font-mono font-black text-lg text-center px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-m3-sm shrink-0">
+                <span>{m.status === 'Agendado' ? '-' : m.score_a}</span>
+                <span className="text-xs text-slate-400 mx-1.5">x</span>
+                <span>{m.status === 'Agendado' ? '-' : m.score_b}</span>
+              </div>
+              <div className="flex-1 font-bold text-sm text-slate-900 dark:text-white truncate text-right">
+                {m.team_b_name}
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-m3-outline-variant/30 flex items-center justify-between text-xs text-slate-500">
+              <div className="flex items-center gap-1.5 text-[11px] truncate">
+                <Calendar size={13} className="text-slate-400" />
+                <span>{m.match_date} às {m.match_time}</span>
+                <span>•</span>
+                <MapPin size={13} className="text-m3-primary shrink-0" />
+                <span className="truncate">{m.venue}</span>
               </div>
 
-              {/* Confronto e Placar Interativo */}
-              <div className="flex items-center justify-center gap-4 flex-1">
-                {/* Time A */}
-                <div className="flex items-center gap-2 text-right justify-end flex-1">
-                  <span className="font-bold text-xs sm:text-sm truncate text-slate-900 dark:text-white">
-                    {m.team_a_name}
-                  </span>
-                  <TeamAvatar avatarKey={getTeamAvatar(m.team_a_id)} name={m.team_a_name} size="sm" />
-                  <div className="inline-flex flex-col gap-0.5 ml-1">
-                    <button
-                      type="button"
-                      onClick={() => updateScoreQuick(m, 1, 0)}
-                      className="w-5 h-5 bg-emerald-600 text-white rounded text-xs hover:bg-emerald-700"
-                    >
-                      +
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => updateScoreQuick(m, -1, 0)}
-                      className="w-5 h-5 bg-slate-300 dark:bg-slate-700 rounded text-xs hover:bg-slate-400"
-                    >
-                      -
-                    </button>
-                  </div>
-                </div>
-
-                {/* Placar Central */}
-                <div className="flex flex-col items-center px-2">
-                  <div className="font-mono text-xl sm:text-2xl font-black px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-m3-sm text-slate-900 dark:text-white">
-                    <span>{m.score_a}</span> : <span>{m.score_b}</span>
-                  </div>
-                  {m.score_penalties_a !== null && m.score_penalties_a !== undefined && (
-                    <span className="text-[10px] text-slate-500 font-mono mt-0.5">
-                      Pên: {m.score_penalties_a} x {m.score_penalties_b}
-                    </span>
-                  )}
-                </div>
-
-                {/* Time B */}
-                <div className="flex items-center gap-2 text-left justify-start flex-1">
-                  <div className="inline-flex flex-col gap-0.5 mr-1">
-                    <button
-                      type="button"
-                      onClick={() => updateScoreQuick(m, 0, 1)}
-                      className="w-5 h-5 bg-emerald-600 text-white rounded text-xs hover:bg-emerald-700"
-                    >
-                      +
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => updateScoreQuick(m, 0, -1)}
-                      className="w-5 h-5 bg-slate-300 dark:bg-slate-700 rounded text-xs hover:bg-slate-400"
-                    >
-                      -
-                    </button>
-                  </div>
-                  <TeamAvatar avatarKey={getTeamAvatar(m.team_b_id)} name={m.team_b_name} size="sm" />
-                  <span className="font-bold text-xs sm:text-sm truncate text-slate-900 dark:text-white">
-                    {m.team_b_name}
-                  </span>
-                </div>
-              </div>
-
-              {/* Status & Botões de Ação CRUD */}
-              <div className="flex items-center gap-2 self-end lg:self-center">
-                <select
-                  value={m.status}
-                  onChange={(e) => setMatchStatusQuick(m, e.target.value as any)}
-                  className="text-xs font-semibold rounded-m3-full bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant px-2.5 py-1"
-                >
-                  <option value="Agendado">Agendado</option>
-                  <option value="Ao Vivo">Ao Vivo</option>
-                  <option value="Finalizado">Finalizado</option>
-                  <option value="Adiado">Adiado</option>
-                </select>
-
+              <div className="flex items-center gap-1 shrink-0">
                 <button
-                  type="button"
-                  title="Editar dados da partida"
-                  onClick={() => setEditingMatch({ ...m })}
-                  className="p-1.5 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300"
+                  onClick={() => setEditingMatch(m)}
+                  title="Editar partida"
+                  className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300"
                 >
-                  <Edit3 size={16} />
+                  <Edit3 size={15} />
                 </button>
-
                 <button
-                  type="button"
-                  title="Remover partida"
                   onClick={() => setDeletingMatchId(m.id)}
-                  className="p-1.5 rounded-full hover:bg-red-100 dark:hover:bg-red-950 text-rose-600"
+                  title="Remover partida"
+                  className="p-1.5 rounded-full hover:bg-rose-100 dark:hover:bg-rose-950 text-rose-600"
                 >
-                  <Trash2 size={16} />
+                  <Trash2 size={15} />
                 </button>
               </div>
             </div>
@@ -319,7 +243,18 @@ export const MatchManager: React.FC<MatchManagerProps> = ({
               <label className="block text-xs font-semibold mb-1">Modalidade</label>
               <select
                 value={newMatch.modality_id}
-                onChange={(e) => setNewMatch({ ...newMatch, modality_id: e.target.value })}
+                onChange={(e) => {
+                  const newModId = e.target.value;
+                  const modTeams = teams.filter((t) => t.modality_id === newModId);
+                  setNewMatch({
+                    ...newMatch,
+                    modality_id: newModId,
+                    team_a_name: modTeams[0]?.name || '',
+                    team_a_id: modTeams[0]?.id,
+                    team_b_name: modTeams[1]?.name || '',
+                    team_b_id: modTeams[1]?.id,
+                  });
+                }}
                 className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant"
               >
                 {modalities.map((m) => (
@@ -331,10 +266,10 @@ export const MatchManager: React.FC<MatchManagerProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold mb-1">Fase / Grupo</label>
+              <label className="block text-xs font-semibold mb-1">Fase / Chave</label>
               <input
                 type="text"
-                placeholder="Ex: Grupo A, Semifinal 1, Final..."
+                placeholder="Ex: Grupo A, Semifinal, Final..."
                 value={newMatch.group_name}
                 onChange={(e) => setNewMatch({ ...newMatch, group_name: e.target.value })}
                 className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant"
@@ -342,59 +277,117 @@ export const MatchManager: React.FC<MatchManagerProps> = ({
             </div>
           </div>
 
+          {/* Seleção de Equipes Filtradas pela Modalidade (Item 7) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold mb-1">Equipe A (Mandante)</label>
-              <input
-                type="text"
-                required
-                placeholder="Nome da equipe A"
-                value={newMatch.team_a_name}
-                onChange={(e) => setNewMatch({ ...newMatch, team_a_name: e.target.value })}
-                className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant"
-              />
+              {creationAvailableTeams.length > 0 ? (
+                <select
+                  required
+                  value={newMatch.team_a_name}
+                  onChange={(e) => {
+                    const sel = creationAvailableTeams.find((t) => t.name === e.target.value);
+                    setNewMatch({
+                      ...newMatch,
+                      team_a_name: e.target.value,
+                      team_a_id: sel?.id,
+                    });
+                  }}
+                  className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant font-semibold"
+                >
+                  <option value="">Selecione a Equipe A...</option>
+                  {creationAvailableTeams.map((t) => (
+                    <option key={t.id} value={t.name}>
+                      {t.name} ({t.group_name || 'Geral'})
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  required
+                  placeholder="Nome da equipe A"
+                  value={newMatch.team_a_name}
+                  onChange={(e) => setNewMatch({ ...newMatch, team_a_name: e.target.value })}
+                  className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant"
+                />
+              )}
             </div>
 
             <div>
               <label className="block text-xs font-semibold mb-1">Equipe B (Visitante)</label>
-              <input
-                type="text"
-                required
-                placeholder="Nome da equipe B"
-                value={newMatch.team_b_name}
-                onChange={(e) => setNewMatch({ ...newMatch, team_b_name: e.target.value })}
-                className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant"
-              />
+              {creationAvailableTeams.length > 0 ? (
+                <select
+                  required
+                  value={newMatch.team_b_name}
+                  onChange={(e) => {
+                    const sel = creationAvailableTeams.find((t) => t.name === e.target.value);
+                    setNewMatch({
+                      ...newMatch,
+                      team_b_name: e.target.value,
+                      team_b_id: sel?.id,
+                    });
+                  }}
+                  className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant font-semibold"
+                >
+                  <option value="">Selecione a Equipe B...</option>
+                  {creationAvailableTeams.map((t) => (
+                    <option key={t.id} value={t.name}>
+                      {t.name} ({t.group_name || 'Geral'})
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  required
+                  placeholder="Nome da equipe B"
+                  value={newMatch.team_b_name}
+                  onChange={(e) => setNewMatch({ ...newMatch, team_b_name: e.target.value })}
+                  className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant"
+                />
+              )}
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          {/* Data no formato dd/mm/aaaa, Horário e Unidade IFB Oficial */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-semibold mb-1">Data</label>
+              <label className="block text-xs font-semibold mb-1">Data (dd/mm/aaaa)</label>
               <input
                 type="text"
+                required
+                placeholder="Ex: 10/11/2026"
                 value={newMatch.match_date}
-                onChange={(e) => setNewMatch({ ...newMatch, match_date: e.target.value })}
-                className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant"
+                onChange={(e) => handleDateChange(e.target.value)}
+                className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant font-mono"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold mb-1">Horário</label>
+              <label className="block text-xs font-semibold mb-1">Horário (hh:mm)</label>
               <input
                 type="text"
+                required
+                placeholder="Ex: 14:00"
                 value={newMatch.match_time}
                 onChange={(e) => setNewMatch({ ...newMatch, match_time: e.target.value })}
-                className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant"
+                className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant font-mono"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold mb-1">Praça / Local</label>
-              <input
-                type="text"
+              <label className="block text-xs font-semibold mb-1">Unidade IFB (Sede)</label>
+              <select
+                required
                 value={newMatch.venue}
                 onChange={(e) => setNewMatch({ ...newMatch, venue: e.target.value })}
-                className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant"
-              />
+                className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant font-semibold"
+              >
+                {IFB_UNITS.map((u) => (
+                  <option key={u} value={u}>
+                    {u}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
@@ -417,11 +410,76 @@ export const MatchManager: React.FC<MatchManagerProps> = ({
       >
         {editingMatch && (
           <form onSubmit={handleEditSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
+            {/* Equipes */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold mb-1">Equipe A: {editingMatch.team_a_name}</label>
+                <label className="block text-xs font-semibold mb-1">Equipe A</label>
+                {editingAvailableTeams.length > 0 ? (
+                  <select
+                    value={editingMatch.team_a_name}
+                    onChange={(e) => {
+                      const sel = editingAvailableTeams.find((t) => t.name === e.target.value);
+                      setEditingMatch({
+                        ...editingMatch,
+                        team_a_name: e.target.value,
+                        team_a_id: sel?.id,
+                      });
+                    }}
+                    className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant font-semibold"
+                  >
+                    {editingAvailableTeams.map((t) => (
+                      <option key={t.id} value={t.name}>
+                        {t.name}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={editingMatch.team_a_name}
+                    onChange={(e) => setEditingMatch({ ...editingMatch, team_a_name: e.target.value })}
+                    className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant"
+                  />
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold mb-1">Equipe B</label>
+                {editingAvailableTeams.length > 0 ? (
+                  <select
+                    value={editingMatch.team_b_name}
+                    onChange={(e) => {
+                      const sel = editingAvailableTeams.find((t) => t.name === e.target.value);
+                      setEditingMatch({
+                        ...editingMatch,
+                        team_b_name: e.target.value,
+                        team_b_id: sel?.id,
+                      });
+                    }}
+                    className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant font-semibold"
+                  >
+                    {editingAvailableTeams.map((t) => (
+                      <option key={t.id} value={t.name}>
+                        {t.name}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={editingMatch.team_b_name}
+                    onChange={(e) => setEditingMatch({ ...editingMatch, team_b_name: e.target.value })}
+                    className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant"
+                  />
+                )}
+              </div>
+            </div>
+
+            {/* Placares e Pênaltis */}
+            <div className="grid grid-cols-2 gap-3 bg-slate-50 dark:bg-slate-800/40 p-3 rounded-m3-sm">
+              <div>
+                <label className="block text-xs font-semibold mb-1">Placar {editingMatch.team_a_name}</label>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-500">Placar:</span>
                   <input
                     type="number"
                     min="0"
@@ -435,7 +493,7 @@ export const MatchManager: React.FC<MatchManagerProps> = ({
                     type="number"
                     min="0"
                     placeholder="Pên."
-                    value={editingMatch.score_penalties_a || ''}
+                    value={editingMatch.score_penalties_a ?? ''}
                     onChange={(e) =>
                       setEditingMatch({
                         ...editingMatch,
@@ -448,9 +506,8 @@ export const MatchManager: React.FC<MatchManagerProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold mb-1">Equipe B: {editingMatch.team_b_name}</label>
+                <label className="block text-xs font-semibold mb-1">Placar {editingMatch.team_b_name}</label>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-500">Placar:</span>
                   <input
                     type="number"
                     min="0"
@@ -464,7 +521,7 @@ export const MatchManager: React.FC<MatchManagerProps> = ({
                     type="number"
                     min="0"
                     placeholder="Pên."
-                    value={editingMatch.score_penalties_b || ''}
+                    value={editingMatch.score_penalties_b ?? ''}
                     onChange={(e) =>
                       setEditingMatch({
                         ...editingMatch,
@@ -477,44 +534,57 @@ export const MatchManager: React.FC<MatchManagerProps> = ({
               </div>
             </div>
 
+            {/* Status */}
             <div>
-              <label className="block text-xs font-semibold mb-1">Detalhe de Sets (Ex: 25-21, 23-25, 15-12)</label>
-              <input
-                type="text"
-                placeholder="Opcional: placar de sets para Vôlei ou Futevôlei"
-                value={editingMatch.sets_detail || ''}
-                onChange={(e) => setEditingMatch({ ...editingMatch, sets_detail: e.target.value })}
-                className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant"
-              />
+              <label className="block text-xs font-semibold mb-1">Status da Partida</label>
+              <select
+                value={editingMatch.status}
+                onChange={(e) => setEditingMatch({ ...editingMatch, status: e.target.value as any })}
+                className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant font-semibold"
+              >
+                <option value="Agendado">Agendado</option>
+                <option value="Ao Vivo">Ao Vivo</option>
+                <option value="Finalizado">Finalizado</option>
+                <option value="Adiado">Adiado</option>
+              </select>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
+            {/* Data dd/mm/aaaa, Horário e Unidade IFB */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-xs font-semibold mb-1">Data</label>
+                <label className="block text-xs font-semibold mb-1">Data (dd/mm/aaaa)</label>
                 <input
                   type="text"
+                  required
                   value={editingMatch.match_date}
-                  onChange={(e) => setEditingMatch({ ...editingMatch, match_date: e.target.value })}
-                  className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant"
+                  onChange={(e) => handleDateChange(e.target.value, true)}
+                  className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant font-mono"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold mb-1">Horário</label>
+                <label className="block text-xs font-semibold mb-1">Horário (hh:mm)</label>
                 <input
                   type="text"
+                  required
                   value={editingMatch.match_time}
                   onChange={(e) => setEditingMatch({ ...editingMatch, match_time: e.target.value })}
-                  className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant"
+                  className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant font-mono"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold mb-1">Praça / Local</label>
-                <input
-                  type="text"
+                <label className="block text-xs font-semibold mb-1">Unidade IFB (Sede)</label>
+                <select
+                  required
                   value={editingMatch.venue}
                   onChange={(e) => setEditingMatch({ ...editingMatch, venue: e.target.value })}
-                  className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant"
-                />
+                  className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant font-semibold"
+                >
+                  {IFB_UNITS.map((u) => (
+                    <option key={u} value={u}>
+                      {u}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
@@ -556,4 +626,3 @@ export const MatchManager: React.FC<MatchManagerProps> = ({
     </div>
   );
 };
-

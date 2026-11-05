@@ -1,12 +1,33 @@
 import React, { useState } from 'react';
-import { Match, Modality, CollectiveTeam, Campus, IndividualParticipant, IndividualPodium } from '../../types/database';
+import {
+  Match,
+  Modality,
+  CollectiveTeam,
+  Campus,
+  IndividualParticipant,
+  IndividualPodium,
+  Notice,
+  DistanceRecord,
+} from '../../types/database';
 import { isSupabaseConfigured, supabase } from '../../lib/supabase';
 import { MatchManager } from './MatchManager';
 import { TeamManager } from './TeamManager';
 import { IndividualManager } from './IndividualManager';
+import { NewsManager } from './NewsManager';
 import { BackupExport } from './BackupExport';
 import { M3Button } from '../m3/M3Button';
-import { Swords, Users, Trophy, HardDrive, LogOut, ShieldCheck, Database, CheckCircle2, RefreshCw } from 'lucide-react';
+import {
+  Swords,
+  Users,
+  Trophy,
+  HardDrive,
+  LogOut,
+  Newspaper,
+  Database,
+  CheckCircle2,
+  RefreshCw,
+  BookOpen,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export interface AdminDashboardProps {
@@ -16,7 +37,10 @@ export interface AdminDashboardProps {
   campuses: Campus[];
   participants: IndividualParticipant[];
   podiums: IndividualPodium[];
+  notices: Notice[];
+  distances: DistanceRecord[];
   onRefreshData: () => void;
+  onSyncRegulations: () => Promise<boolean>;
   onLogout: () => void;
 }
 
@@ -27,12 +51,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   campuses,
   participants,
   podiums,
+  notices,
+  distances,
   onRefreshData,
+  onSyncRegulations,
   onLogout,
 }) => {
-  const [activeSection, setActiveSection] = useState<'matches' | 'teams' | 'individuals' | 'backup'>('matches');
+  const [activeSection, setActiveSection] = useState<'matches' | 'teams' | 'individuals' | 'notices' | 'backup'>('matches');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isTestingConnection, setIsTestingConnection] = useState<boolean>(false);
+  const [isSyncingRegulations, setIsSyncingRegulations] = useState<boolean>(false);
 
   const hasSupabase = isSupabaseConfigured();
 
@@ -40,7 +68,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage(null);
-    }, 4000);
+    }, 4500);
   };
 
   const handleDataChangedWithFeedback = (entityName: string) => {
@@ -54,7 +82,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setIsTestingConnection(true);
     try {
       if (hasSupabase && supabase) {
-        const { error, count } = await supabase.from('matches').select('*', { count: 'exact', head: true });
+        const { error } = await supabase.from('matches').select('*', { count: 'exact', head: true });
         if (error) throw error;
         showNotification(`🟢 Conexão com o Supabase 100% ativa e respondendo! (${matches.length} partidas sincronizadas)`);
       } else {
@@ -67,10 +95,27 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
+  const handleSyncRegulationsClick = async () => {
+    setIsSyncingRegulations(true);
+    try {
+      const ok = await onSyncRegulations();
+      if (ok) {
+        showNotification('📜 Regulamento oficial completo (22 Seções: Capítulos I a X e Anexos I a XII) sincronizado no Supabase com sucesso!');
+      } else {
+        showNotification('⚠️ Não foi possível sincronizar o regulamento no Supabase remoto. Verifique a conexão.');
+      }
+    } catch (e: any) {
+      showNotification(`⚠️ Erro ao sincronizar regulamento: ${e.message}`);
+    } finally {
+      setIsSyncingRegulations(false);
+    }
+  };
+
   const navItems = [
     { id: 'matches', label: 'Partidas & Placares', icon: <Swords size={16} /> },
     { id: 'teams', label: 'Equipes & Avatars', icon: <Users size={16} /> },
-    { id: 'individuals', label: 'Individuais & Pódios', icon: <Trophy size={16} /> },
+    { id: 'individuals', label: 'Individuais, Pódios & KM', icon: <Trophy size={16} /> },
+    { id: 'notices', label: 'Notícias & Fotos', icon: <Newspaper size={16} /> },
     { id: 'backup', label: 'Relatórios & Backup', icon: <HardDrive size={16} /> },
   ];
 
@@ -127,20 +172,32 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 {hasSupabase ? '🟢 Nuvem Supabase (PostgreSQL)' : '💾 Memória Local Persistente (Ativa)'}
               </span>
               <span className="text-slate-400 ml-2">
-                ({matches.length} jogos, {teams.length} equipes, {podiums.length} pódios)
+                ({matches.length} jogos, {teams.length} equipes, {podiums.length} pódios, {notices.length} notícias, {distances.length} distâncias)
               </span>
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={handleTestDatabase}
-            disabled={isTestingConnection}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-m3-full bg-slate-800 hover:bg-slate-700 text-emerald-300 font-semibold border border-slate-700 transition-colors"
-          >
-            <RefreshCw size={13} className={isTestingConnection ? 'animate-spin' : ''} />
-            <span>Testar Gravação no Banco</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={handleSyncRegulationsClick}
+              disabled={isSyncingRegulations}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-m3-full bg-slate-800 hover:bg-slate-700 text-amber-300 font-semibold border border-slate-700 transition-colors"
+            >
+              <BookOpen size={13} className={isSyncingRegulations ? 'animate-pulse' : ''} />
+              <span>Sincronizar Regulamento no Banco (22 Seções)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleTestDatabase}
+              disabled={isTestingConnection}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-m3-full bg-slate-800 hover:bg-slate-700 text-emerald-300 font-semibold border border-slate-700 transition-colors"
+            >
+              <RefreshCw size={13} className={isTestingConnection ? 'animate-spin' : ''} />
+              <span>Testar Gravação no Banco</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -190,7 +247,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           campuses={campuses}
           participants={participants}
           podiums={podiums}
-          onDataChanged={() => handleDataChangedWithFeedback('Participante / Pódio Individual')}
+          distances={distances}
+          onDataChanged={() => handleDataChangedWithFeedback('Participante / Pódio / Distância')}
+        />
+      )}
+
+      {activeSection === 'notices' && (
+        <NewsManager
+          notices={notices}
+          onDataChanged={() => handleDataChangedWithFeedback('Notícia / Comunicado')}
         />
       )}
 

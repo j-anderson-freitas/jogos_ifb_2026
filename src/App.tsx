@@ -3,10 +3,10 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useJISData } from './hooks/useJISData';
 import { M3TopAppBar } from './components/m3/M3TopAppBar';
 import { LiveScoreboard } from './components/public/LiveScoreboard';
+import { NewsView } from './components/public/NewsView';
 import { StandingsTable } from './components/public/StandingsTable';
 import { BracketTree } from './components/public/BracketTree';
 import { HybridMedalsTable } from './components/public/HybridMedalsTable';
-import { ScheduleView } from './components/public/ScheduleView';
 import { RegulationViewer } from './components/public/RegulationViewer';
 import { AdminLogin } from './components/admin/AdminLogin';
 import { AdminDashboard } from './components/admin/AdminDashboard';
@@ -32,10 +32,13 @@ export const App: React.FC = () => {
     teams,
     matches,
     regulations,
+    notices,
     participants,
     podiums,
+    distances,
     isLoading,
     refreshData,
+    syncRegulations,
   } = useJISData();
 
   // Aplicação da classe dark no HTML raiz
@@ -92,7 +95,10 @@ export const App: React.FC = () => {
               campuses={campuses}
               participants={participants}
               podiums={podiums}
+              notices={notices}
+              distances={distances}
               onRefreshData={refreshData}
+              onSyncRegulations={syncRegulations}
               onLogout={handleLogout}
             />
           )
@@ -114,7 +120,15 @@ export const App: React.FC = () => {
                   matches={matches}
                   modalities={modalities}
                   teams={teams}
+                  campuses={campuses}
+                  notices={notices}
+                  distances={distances}
+                  onNavigateToNews={() => setActiveTab('noticias')}
                 />
+              )}
+
+              {activeTab === 'noticias' && (
+                <NewsView notices={notices} />
               )}
 
               {activeTab === 'chaveamento' && (
@@ -143,14 +157,6 @@ export const App: React.FC = () => {
                 />
               )}
 
-              {activeTab === 'cronograma' && (
-                <ScheduleView
-                  matches={matches}
-                  modalities={modalities}
-                  teams={teams}
-                />
-              )}
-
               {activeTab === 'regulamento' && (
                 <RegulationViewer regulations={regulations} />
               )}
@@ -167,10 +173,15 @@ export const App: React.FC = () => {
             <span>Jogos de Integração dos Servidores do IFB • JIS-IFB 2026</span>
           </div>
           <p className="text-xs text-slate-500 max-w-xl mx-auto">
-            Promovido pela Pró-Reitoria de Gestão de Pessoas (PRGP)
+            Promovido pela Pró-Reitoria de Gestão de Pessoas (PRGP) e Diretoria de Qualidade de Vida e Desenvolvimento de Pessoas (DRDP).
+            Integração, saúde e espírito comunitário entre os 10 Campi e a Reitoria do Instituto Federal de Brasília.
           </p>
           <div className="text-[11px] text-slate-400 pt-2 border-t border-m3-outline-variant/20 flex flex-col sm:flex-row items-center justify-center gap-4">
             <span>© 2026 Instituto Federal de Brasília (IFB)</span>
+            <span>•</span>
+            <span>Material Design 3 & Motion.dev</span>
+            <span>•</span>
+            <span>Supabase Cloud & Vercel</span>
           </div>
         </div>
       </footer>

@@ -1,4 +1,5 @@
-import { Campus, Modality, CollectiveTeam, Match, Regulation, Notice } from '../types/database';
+import { Campus, Modality, CollectiveTeam, Match, Regulation, Notice, DistanceRecord } from '../types/database';
+import fullRegulations from './fullRegulations.json';
 
 export const INITIAL_CAMPUSES: Campus[] = [
   { id: 'campus-brasilia', name: 'Campus Brasília', short_name: 'Brasília', city: 'Brasília - DF' },
@@ -144,213 +145,208 @@ export const INITIAL_MODALITIES: Modality[] = [
     stage: 'Primeiro Lance',
     format: 'grupos_eliminatoria',
     icon: 'Layers',
-    rules_summary: 'Chaves de 4 jogadores em turno único. Classificam-se os 2 melhores de cada chave para as Semifinais e Final.',
+    rules_summary: 'Fase de grupos em turno único (chaves de 4) + Semifinais cruzadas, disputa de 3º lugar e Final.',
     order_index: 12,
   },
   {
-    id: 'tenis-mesa-geral',
+    id: 'tenis-mesa-masc',
     name: 'Tênis de Mesa',
-    category: 'Fem e Absoluto',
+    category: 'Masc e Fem',
     type: 'individual',
     stage: 'Primeiro Lance',
     format: 'grupos_eliminatoria',
     icon: 'CircleDot',
-    rules_summary: 'Categorias Feminino e Absoluto em grupos seguidos de mata-mata. Partidas em melhor de 3 ou 5 sets de 11 pontos.',
+    rules_summary: 'Fase de grupos em turno único + Chave eliminatória simples com disputa de bronze.',
     order_index: 13,
   },
   {
-    id: 'natacao-geral',
-    name: 'Natação',
-    category: 'Masc e Fem',
+    id: 'natacao',
+    name: 'Natação (25m, 50m, 100m)',
+    category: 'Fem e Absoluto',
     type: 'individual',
     stage: 'Geral',
     format: 'cronometrado',
-    icon: 'Droplets',
-    rules_summary: 'Provas individuais de 25m, 50m e 100m Livre em séries cronometradas de finais diretas.',
+    icon: 'Waves',
+    rules_summary: 'Finais diretas cronometradas (25m, 50m e 100m Livre). Pódio ordenado pelos menores tempos apurados.',
     order_index: 14,
   },
   {
     id: 'corrida-caminhada',
-    name: 'Caminhada e Corrida',
+    name: 'Caminhada e Corrida de Rua',
     category: 'M/F Participativa',
     type: 'individual',
     stage: 'Geral',
     format: 'participativa',
     icon: 'Footprints',
-    rules_summary: 'Caráter participativo e integrativo com medalha a todos os concluintes devidamente inscritos.',
+    rules_summary: 'Caráter integrativo com contabilização oficial da distância percorrida por servidor e campus para o ranking de quilometragem.',
     order_index: 15,
   },
 ];
 
 export const INITIAL_TEAMS: CollectiveTeam[] = [
   // Futsal Masc
-  { id: 'fut-m-galaticos', name: 'Galáticos Cpla', modality_id: 'futsal-masc', group_name: 'Grupo A', initial_code: 'A1', campus_id: 'campus-planaltina', avatar_key: 'galaticos' },
-  { id: 'fut-m-gatopreto', name: 'Gato Preto - CCEI', modality_id: 'futsal-masc', group_name: 'Grupo A', initial_code: 'A2', campus_id: 'campus-ceilandia', avatar_key: 'gatopreto' },
-  { id: 'fut-m-gama', name: 'Gama', modality_id: 'futsal-masc', group_name: 'Grupo A', initial_code: 'A3', campus_id: 'campus-gama', avatar_key: 'gama' },
-  { id: 'fut-m-sarues', name: 'Os Saruês', modality_id: 'futsal-masc', group_name: 'Grupo B', initial_code: 'B1', campus_id: 'campus-brasilia', avatar_key: 'sarues' },
-  { id: 'fut-m-canela', name: 'Canela de Ema', modality_id: 'futsal-masc', group_name: 'Grupo B', initial_code: 'B2', campus_id: 'campus-estrutural', avatar_key: 'canela' },
-  { id: 'fut-m-cachorroes', name: 'Cachorrões', modality_id: 'futsal-masc', group_name: 'Grupo B', initial_code: 'B3', campus_id: 'campus-taguatinga', avatar_key: 'cachorroes' },
-  { id: 'fut-m-next', name: 'Next', modality_id: 'futsal-masc', group_name: 'Grupo C', initial_code: 'C1', campus_id: 'campus-samambaia', avatar_key: 'next' },
-  { id: 'fut-m-deepriver', name: 'Deep River', modality_id: 'futsal-masc', group_name: 'Grupo C', initial_code: 'C2', campus_id: 'campus-riacho-fundo', avatar_key: 'deepriver' },
-  { id: 'fut-m-estrutural', name: 'Campus Estrutural', modality_id: 'futsal-masc', group_name: 'Grupo C', initial_code: 'C3', campus_id: 'campus-estrutural', avatar_key: 'estrutural' },
+  { id: 'fut-m-galaticos', name: 'Galáticos Cpla', modality_id: 'futsal-masc', group_name: 'Grupo A', campus_id: 'campus-planaltina', avatar_key: 'galaticos' },
+  { id: 'fut-m-gatopreto', name: 'Gato Preto - CCEI', modality_id: 'futsal-masc', group_name: 'Grupo A', campus_id: 'campus-ceilandia', avatar_key: 'gato_preto' },
+  { id: 'fut-m-gama', name: 'Gama', modality_id: 'futsal-masc', group_name: 'Grupo A', campus_id: 'campus-gama', avatar_key: 'gama' },
+  { id: 'fut-m-sarues', name: 'Os Saruês', modality_id: 'futsal-masc', group_name: 'Grupo B', campus_id: 'campus-brasilia', avatar_key: 'sarues' },
+  { id: 'fut-m-canela', name: 'Canela de Ema', modality_id: 'futsal-masc', group_name: 'Grupo B', campus_id: 'campus-estrutural', avatar_key: 'canela' },
+  { id: 'fut-m-cachorroes', name: 'Cachorrões', modality_id: 'futsal-masc', group_name: 'Grupo B', campus_id: 'campus-taguatinga', avatar_key: 'cachorroes' },
+  { id: 'fut-m-next', name: 'Next', modality_id: 'futsal-masc', group_name: 'Grupo C', campus_id: 'campus-samambaia', avatar_key: 'next' },
+  { id: 'fut-m-deepriver', name: 'Deep River', modality_id: 'futsal-masc', group_name: 'Grupo C', campus_id: 'campus-riacho-fundo', avatar_key: 'deep_river' },
+  { id: 'fut-m-estrutural', name: 'Campus Estrutural', modality_id: 'futsal-masc', group_name: 'Grupo C', campus_id: 'campus-estrutural', avatar_key: 'estrutural' },
 
-  // Futsal Fem
-  { id: 'fut-f-gatopreto', name: 'Gato Preto', modality_id: 'futsal-fem', group_name: 'Triangular', initial_code: 'F1', campus_id: 'campus-ceilandia', avatar_key: 'gatopreto' },
-  { id: 'fut-f-donas', name: 'Donas da bola', modality_id: 'futsal-fem', group_name: 'Triangular', initial_code: 'F2', campus_id: 'campus-taguatinga', avatar_key: 'donas' },
-  { id: 'fut-f-sebastiana', name: 'Sebastiana F.C.', modality_id: 'futsal-fem', group_name: 'Triangular', initial_code: 'F3', campus_id: 'campus-sao-sebastiao', avatar_key: 'sebastiana' },
+  // Futsal Fem (Triangular)
+  { id: 'fut-f-gatopreto', name: 'Gato Preto', modality_id: 'futsal-fem', group_name: 'Triangular', campus_id: 'campus-ceilandia', avatar_key: 'gato_preto' },
+  { id: 'fut-f-donas', name: 'Donas da bola', modality_id: 'futsal-fem', group_name: 'Triangular', campus_id: 'campus-taguatinga', avatar_key: 'donas' },
+  { id: 'fut-f-sebastiana', name: 'Sebastiana F.C.', modality_id: 'futsal-fem', group_name: 'Triangular', campus_id: 'campus-sao-sebastiao', avatar_key: 'sebastiana' },
 
-  // Vôlei Misto
-  { id: 'vol-m-ctag', name: 'Voleibol_Ctag', modality_id: 'volei-misto', group_name: 'Grupo A', initial_code: 'A1', campus_id: 'campus-taguatinga', avatar_key: 'voleibol_ctag' },
-  { id: 'vol-m-deepriver', name: 'Deep River', modality_id: 'volei-misto', group_name: 'Grupo A', initial_code: 'A2', campus_id: 'campus-riacho-fundo', avatar_key: 'deepriver' },
-  { id: 'vol-m-cpla', name: 'CPLA', modality_id: 'volei-misto', group_name: 'Grupo A', initial_code: 'A3', campus_id: 'campus-planaltina', avatar_key: 'cpla' },
-  { id: 'vol-m-boratime', name: 'Bora Time', modality_id: 'volei-misto', group_name: 'Grupo A', initial_code: 'A4', campus_id: 'reitoria', avatar_key: 'boratime' },
-  { id: 'vol-m-canela', name: 'Canela de Ema', modality_id: 'volei-misto', group_name: 'Grupo B', initial_code: 'B1', campus_id: 'campus-estrutural', avatar_key: 'canela' },
-  { id: 'vol-m-gatopreto', name: 'Gato Preto CCEI', modality_id: 'volei-misto', group_name: 'Grupo B', initial_code: 'B2', campus_id: 'campus-ceilandia', avatar_key: 'gatopreto' },
-  { id: 'vol-m-titas', name: 'Titãs do Vôlei', modality_id: 'volei-misto', group_name: 'Grupo B', initial_code: 'B3', campus_id: 'campus-brasilia', avatar_key: 'titas' },
-  { id: 'vol-m-semdidatica', name: 'Sem Didática Para Jogar', modality_id: 'volei-misto', group_name: 'Grupo B', initial_code: 'B4', campus_id: 'campus-samambaia', avatar_key: 'semdidatica' },
+  // Vôlei Misto - Grupo A
+  { id: 'vol-m-ctag', name: 'Voleibol_Ctag', modality_id: 'volei-misto', group_name: 'Grupo A', campus_id: 'campus-taguatinga', avatar_key: 'tagua_vol' },
+  { id: 'vol-m-deepriver', name: 'Deep River', modality_id: 'volei-misto', group_name: 'Grupo A', campus_id: 'campus-riacho-fundo', avatar_key: 'deep_river' },
+  { id: 'vol-m-cpla', name: 'CPLA', modality_id: 'volei-misto', group_name: 'Grupo A', campus_id: 'campus-planaltina', avatar_key: 'cpla' },
+  { id: 'vol-m-boratime', name: 'Bora Time', modality_id: 'volei-misto', group_name: 'Grupo A', campus_id: 'campus-brasilia', avatar_key: 'bora_time' },
+
+  // Vôlei Misto - Grupo B
+  { id: 'vol-m-canela', name: 'Canela de Ema', modality_id: 'volei-misto', group_name: 'Grupo B', campus_id: 'campus-estrutural', avatar_key: 'canela' },
+  { id: 'vol-m-gatopreto', name: 'Gato Preto CCEI', modality_id: 'volei-misto', group_name: 'Grupo B', campus_id: 'campus-ceilandia', avatar_key: 'gato_preto' },
+  { id: 'vol-m-titas', name: 'Titãs do Vôlei', modality_id: 'volei-misto', group_name: 'Grupo B', campus_id: 'campus-samambaia', avatar_key: 'titas' },
+  { id: 'vol-m-semdidatica', name: 'Sem Didática Para Jogar', modality_id: 'volei-misto', group_name: 'Grupo B', campus_id: 'reitoria', avatar_key: 'sem_didatica' },
 
   // Basquete 3x3 Masc
-  { id: 'bas-m-estrutural', name: 'Estrutural', modality_id: 'basquete-masc', group_name: 'Grupo A', initial_code: 'M-A1', campus_id: 'campus-estrutural', avatar_key: 'estrutural' },
-  { id: 'bas-m-canela', name: 'Canela de Ema', modality_id: 'basquete-masc', group_name: 'Grupo A', initial_code: 'M-A2', campus_id: 'campus-estrutural', avatar_key: 'canela' },
-  { id: 'bas-m-quitados', name: 'Quitados e Queimados', modality_id: 'basquete-masc', group_name: 'Grupo A', initial_code: 'M-A3', campus_id: 'reitoria', avatar_key: 'quitados' },
-  { id: 'bas-m-ctag', name: 'CTAG Hoopers', modality_id: 'basquete-masc', group_name: 'Grupo B', initial_code: 'M-B1', campus_id: 'campus-taguatinga', avatar_key: 'ctaghoopers' },
-  { id: 'bas-m-gatopreto', name: 'Gato Preto CCEI', modality_id: 'basquete-masc', group_name: 'Grupo B', initial_code: 'M-B2', campus_id: 'campus-ceilandia', avatar_key: 'gatopreto' },
-  { id: 'bas-m-semdidatica', name: 'Sem Didática Para Jogar', modality_id: 'basquete-masc', group_name: 'Grupo B', initial_code: 'M-B3', campus_id: 'campus-samambaia', avatar_key: 'semdidatica' },
+  { id: 'bas-m-estrutural', name: 'Estrutural', modality_id: 'basquete-masc', group_name: 'Grupo A', campus_id: 'campus-estrutural', avatar_key: 'estrutural' },
+  { id: 'bas-m-canela', name: 'Canela de Ema', modality_id: 'basquete-masc', group_name: 'Grupo A', campus_id: 'campus-estrutural', avatar_key: 'canela' },
+  { id: 'bas-m-quitados', name: 'Quitados e Queimados', modality_id: 'basquete-masc', group_name: 'Grupo A', campus_id: 'campus-brasilia', avatar_key: 'quitados' },
+  { id: 'bas-m-ctag', name: 'CTAG Hoopers', modality_id: 'basquete-masc', group_name: 'Grupo B', campus_id: 'campus-taguatinga', avatar_key: 'tagua_vol' },
+  { id: 'bas-m-gatopreto', name: 'Gato Preto CCEI', modality_id: 'basquete-masc', group_name: 'Grupo B', campus_id: 'campus-ceilandia', avatar_key: 'gato_preto' },
+  { id: 'bas-m-semdidatica', name: 'Sem Didática Para Jogar', modality_id: 'basquete-masc', group_name: 'Grupo B', campus_id: 'reitoria', avatar_key: 'sem_didatica' },
 
   // Basquete 3x3 Misto
-  { id: 'bas-x-jordana', name: 'Jordan\'as Tagua Clube', modality_id: 'basquete-misto', group_name: 'Triangular', initial_code: 'X1', campus_id: 'campus-taguatinga', avatar_key: 'jordana' },
-  { id: 'bas-x-gatopreto2', name: 'Gato Preto Misto 2', modality_id: 'basquete-misto', group_name: 'Triangular', initial_code: 'X2', campus_id: 'campus-ceilandia', avatar_key: 'gatopreto' },
-  { id: 'bas-x-gatopreto1', name: 'Gato Preto Misto 1', modality_id: 'basquete-misto', group_name: 'Triangular', initial_code: 'X3', campus_id: 'campus-ceilandia', avatar_key: 'gatopreto' },
+  { id: 'bas-x-jordana', name: 'Jordan\'as Tagua Clube', modality_id: 'basquete-misto', group_name: 'Triangular', campus_id: 'campus-taguatinga', avatar_key: 'jordana' },
+  { id: 'bas-x-gatopreto2', name: 'Gato Preto Misto 2', modality_id: 'basquete-misto', group_name: 'Triangular', campus_id: 'campus-ceilandia', avatar_key: 'gato_preto' },
+  { id: 'bas-x-gatopreto1', name: 'Gato Preto Misto 1', modality_id: 'basquete-misto', group_name: 'Triangular', campus_id: 'campus-ceilandia', avatar_key: 'gato_preto' },
 
   // Vôlei de Praia Masc
-  { id: 'vpr-m-cest', name: 'CEST', modality_id: 'volei-praia-masc', group_name: 'Grupo A', initial_code: 'M-A1', campus_id: 'campus-estrutural', avatar_key: 'cest' },
-  { id: 'vpr-m-estrutural', name: 'Estrutural', modality_id: 'volei-praia-masc', group_name: 'Grupo A', initial_code: 'M-A2', campus_id: 'campus-estrutural', avatar_key: 'estrutural' },
-  { id: 'vpr-m-bonde', name: 'Bonde da Ceilândia', modality_id: 'volei-praia-masc', group_name: 'Grupo A', initial_code: 'M-A3', campus_id: 'campus-ceilandia', avatar_key: 'bonde' },
-  { id: 'vpr-m-sarues', name: 'Os Saruês', modality_id: 'volei-praia-masc', group_name: 'Grupo B', initial_code: 'M-B1', campus_id: 'campus-brasilia', avatar_key: 'sarues' },
-  { id: 'vpr-m-cei2', name: 'IFB Ceilândia - Equipe 02', modality_id: 'volei-praia-masc', group_name: 'Grupo B', initial_code: 'M-B2', campus_id: 'campus-ceilandia', avatar_key: 'cei2' },
-  { id: 'vpr-m-canela', name: 'Canela de Ema', modality_id: 'volei-praia-masc', group_name: 'Grupo B', initial_code: 'M-B3', campus_id: 'campus-estrutural', avatar_key: 'canela' },
-  { id: 'vpr-m-semdidatica', name: 'Sem Didática para Jogar', modality_id: 'volei-praia-masc', group_name: 'Grupo C', initial_code: 'M-C1', campus_id: 'campus-samambaia', avatar_key: 'semdidatica' },
-  { id: 'vpr-m-gatopreto', name: 'Gato Preto - CCEI', modality_id: 'volei-praia-masc', group_name: 'Grupo C', initial_code: 'M-C2', campus_id: 'campus-ceilandia', avatar_key: 'gatopreto' },
-  { id: 'vpr-m-sand', name: 'Sand', modality_id: 'volei-praia-masc', group_name: 'Grupo C', initial_code: 'M-C3', campus_id: 'campus-riacho-fundo', avatar_key: 'sand' },
+  { id: 'vpr-m-cest', name: 'CEST', modality_id: 'volei-praia-masc', group_name: 'Grupo A', campus_id: 'campus-estrutural', avatar_key: 'estrutural' },
+  { id: 'vpr-m-estrutural', name: 'Estrutural', modality_id: 'volei-praia-masc', group_name: 'Grupo A', campus_id: 'campus-estrutural', avatar_key: 'estrutural' },
+  { id: 'vpr-m-bonde', name: 'Bonde da Ceilândia', modality_id: 'volei-praia-masc', group_name: 'Grupo A', campus_id: 'campus-ceilandia', avatar_key: 'gato_preto' },
+  { id: 'vpr-m-sarues', name: 'Os Saruês', modality_id: 'volei-praia-masc', group_name: 'Grupo B', campus_id: 'campus-brasilia', avatar_key: 'sarues' },
+  { id: 'vpr-m-cei2', name: 'IFB Ceilândia - Equipe 02', modality_id: 'volei-praia-masc', group_name: 'Grupo B', campus_id: 'campus-ceilandia', avatar_key: 'gato_preto' },
+  { id: 'vpr-m-canela', name: 'Canela de Ema', modality_id: 'volei-praia-masc', group_name: 'Grupo B', campus_id: 'campus-estrutural', avatar_key: 'canela' },
+  { id: 'vpr-m-semdidatica', name: 'Sem Didática para Jogar', modality_id: 'volei-praia-masc', group_name: 'Grupo C', campus_id: 'reitoria', avatar_key: 'sem_didatica' },
+  { id: 'vpr-m-gatopreto', name: 'Gato Preto - CCEI', modality_id: 'volei-praia-masc', group_name: 'Grupo C', campus_id: 'campus-ceilandia', avatar_key: 'gato_preto' },
+  { id: 'vpr-m-sand', name: 'Sand', modality_id: 'volei-praia-masc', group_name: 'Grupo C', campus_id: 'campus-taguatinga', avatar_key: 'sand' },
 
   // Futevôlei Masc
-  { id: 'futv-m-mtbrothers', name: 'MT Brothers', modality_id: 'futevolei-masc', group_name: 'Pontos Corridos', initial_code: 'M1', campus_id: 'campus-taguatinga', avatar_key: 'mtbrothers' },
-  { id: 'futv-m-canela', name: 'Canela de Ema', modality_id: 'futevolei-masc', group_name: 'Pontos Corridos', initial_code: 'M2', campus_id: 'campus-estrutural', avatar_key: 'canela' },
-  { id: 'futv-m-gatopreto', name: 'Gato Preto', modality_id: 'futevolei-masc', group_name: 'Pontos Corridos', initial_code: 'M3', campus_id: 'campus-ceilandia', avatar_key: 'gatopreto' },
-  { id: 'futv-m-sandstars', name: 'Sand Stars', modality_id: 'futevolei-masc', group_name: 'Pontos Corridos', initial_code: 'M4', campus_id: 'campus-riacho-fundo', avatar_key: 'sandstars' },
-  { id: 'futv-m-sarues', name: 'Os Saruês', modality_id: 'futevolei-masc', group_name: 'Pontos Corridos', initial_code: 'M5', campus_id: 'campus-brasilia', avatar_key: 'sarues' },
+  { id: 'futv-m-mt', name: 'MT Brothers', modality_id: 'futevolei-masc', group_name: 'Pontos Corridos', campus_id: 'campus-taguatinga', avatar_key: 'sand' },
+  { id: 'futv-m-canela', name: 'Canela de Ema', modality_id: 'futevolei-masc', group_name: 'Pontos Corridos', campus_id: 'campus-estrutural', avatar_key: 'canela' },
+  { id: 'futv-m-gatopreto', name: 'Gato Preto', modality_id: 'futevolei-masc', group_name: 'Pontos Corridos', campus_id: 'campus-ceilandia', avatar_key: 'gato_preto' },
+  { id: 'futv-m-sandstars', name: 'Sand Stars', modality_id: 'futevolei-masc', group_name: 'Pontos Corridos', campus_id: 'campus-brasilia', avatar_key: 'sand' },
+  { id: 'futv-m-sarues', name: 'Os Saruês', modality_id: 'futevolei-masc', group_name: 'Pontos Corridos', campus_id: 'campus-brasilia', avatar_key: 'sarues' },
 
-  // Futevôlei Misto
-  { id: 'futv-x-soberanas', name: 'Soberanas do Taguá Clube', modality_id: 'futevolei-misto', group_name: 'Final Direta', initial_code: 'X1', campus_id: 'campus-taguatinga', avatar_key: 'soberanas' },
-  { id: 'futv-x-deepriver', name: 'Deep River', modality_id: 'futevolei-misto', group_name: 'Final Direta', initial_code: 'X2', campus_id: 'campus-riacho-fundo', avatar_key: 'deepriver' },
+  // Futevôlei Misto (Confronto Direto)
+  { id: 'futv-x-soberanas', name: 'Soberanas do Taguá Clube', modality_id: 'futevolei-misto', group_name: 'Final Direta', campus_id: 'campus-taguatinga', avatar_key: 'jordana' },
+  { id: 'futv-x-deepriver', name: 'Deep River', modality_id: 'futevolei-misto', group_name: 'Final Direta', campus_id: 'campus-riacho-fundo', avatar_key: 'deep_river' },
 
   // Queimada Mista
-  { id: 'que-x-elite', name: 'Elite', modality_id: 'queimada-mista', group_name: 'Chave Única', initial_code: 'X1', campus_id: 'campus-brasilia', avatar_key: 'elite' },
-  { id: 'que-x-gatopreto', name: 'Gato Preto - CCEI', modality_id: 'queimada-mista', group_name: 'Chave Única', initial_code: 'X2', campus_id: 'campus-ceilandia', avatar_key: 'gatopreto' },
-  { id: 'que-x-endorfinadas', name: 'Endorfinadas IFB', modality_id: 'queimada-mista', group_name: 'Chave Única', initial_code: 'X3', campus_id: 'reitoria', avatar_key: 'endorfinadas' },
-  { id: 'que-x-deepriver', name: 'Deep River', modality_id: 'queimada-mista', group_name: 'Chave Única', initial_code: 'X4', campus_id: 'campus-riacho-fundo', avatar_key: 'deepriver' },
-  { id: 'que-x-semdidatica', name: 'Sem Didática Para Jogar', modality_id: 'queimada-mista', group_name: 'Chave Única', initial_code: 'X5', campus_id: 'campus-samambaia', avatar_key: 'semdidatica' },
-  { id: 'que-x-donas', name: 'Donas da Bola', modality_id: 'queimada-mista', group_name: 'Chave Única', initial_code: 'X6', campus_id: 'campus-taguatinga', avatar_key: 'donas' },
+  { id: 'que-x-elite', name: 'Elite', modality_id: 'queimada-mista', group_name: 'Chave Única', campus_id: 'campus-brasilia', avatar_key: 'bora_time' },
+  { id: 'que-x-gatopreto', name: 'Gato Preto - CCEI', modality_id: 'queimada-mista', group_name: 'Chave Única', campus_id: 'campus-ceilandia', avatar_key: 'gato_preto' },
+  { id: 'que-x-endorfinadas', name: 'Endorfinadas IFB', modality_id: 'queimada-mista', group_name: 'Chave Única', campus_id: 'campus-taguatinga', avatar_key: 'donas' },
+  { id: 'que-x-deepriver', name: 'Deep River', modality_id: 'queimada-mista', group_name: 'Chave Única', campus_id: 'campus-riacho-fundo', avatar_key: 'deep_river' },
+  { id: 'que-x-semdidatica', name: 'Sem Didática Para Jogar', modality_id: 'queimada-mista', group_name: 'Chave Única', campus_id: 'reitoria', avatar_key: 'sem_didatica' },
+  { id: 'que-x-donas', name: 'Donas da Bola', modality_id: 'queimada-mista', group_name: 'Chave Única', campus_id: 'campus-taguatinga', avatar_key: 'donas' },
 
   // Handebol Misto
-  { id: 'han-x-furia', name: 'Fúria Ctga', modality_id: 'handebol-misto', group_name: 'Chave Única', initial_code: 'X1', campus_id: 'campus-taguatinga', avatar_key: 'furia' },
-  { id: 'han-x-deepriver', name: 'Deep River', modality_id: 'handebol-misto', group_name: 'Chave Única', initial_code: 'X2', campus_id: 'campus-riacho-fundo', avatar_key: 'deepriver' },
-  { id: 'han-x-gatopreto', name: 'Gato Preto CCEI', modality_id: 'handebol-misto', group_name: 'Chave Única', initial_code: 'X3', campus_id: 'campus-ceilandia', avatar_key: 'gatopreto' },
-  { id: 'han-x-semdidatica', name: 'Sem Didática Para Jogar', modality_id: 'handebol-misto', group_name: 'Chave Única', initial_code: 'X4', campus_id: 'campus-samambaia', avatar_key: 'semdidatica' },
+  { id: 'han-x-furia', name: 'Fúria Ctga', modality_id: 'handebol-misto', group_name: 'Chave Única', campus_id: 'campus-taguatinga', avatar_key: 'furia' },
+  { id: 'han-x-deepriver', name: 'Deep River', modality_id: 'handebol-misto', group_name: 'Chave Única', campus_id: 'campus-riacho-fundo', avatar_key: 'deep_river' },
+  { id: 'han-x-gatopreto', name: 'Gato Preto CCEI', modality_id: 'handebol-misto', group_name: 'Chave Única', campus_id: 'campus-ceilandia', avatar_key: 'gato_preto' },
+  { id: 'han-x-semdidatica', name: 'Sem Didática Para Jogar', modality_id: 'handebol-misto', group_name: 'Chave Única', campus_id: 'reitoria', avatar_key: 'sem_didatica' },
 ];
 
 export const INITIAL_MATCHES: Match[] = [
   // Futsal Masc - Grupo A
-  { id: 'match-fut-1', modality_id: 'futsal-masc', phase: 'Fase de Grupos', group_name: 'Grupo A', team_a_id: 'fut-m-galaticos', team_b_id: 'fut-m-gatopreto', team_a_name: 'Galáticos Cpla', team_b_name: 'Gato Preto - CCEI', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Ginásio Poliesportivo', round: 1 },
-  { id: 'match-fut-2', modality_id: 'futsal-masc', phase: 'Fase de Grupos', group_name: 'Grupo A', team_a_id: 'fut-m-gatopreto', team_b_id: 'fut-m-gama', team_a_name: 'Gato Preto - CCEI', team_b_name: 'Gama', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Ginásio Poliesportivo', round: 2 },
-  { id: 'match-fut-3', modality_id: 'futsal-masc', phase: 'Fase de Grupos', group_name: 'Grupo A', team_a_id: 'fut-m-galaticos', team_b_id: 'fut-m-gama', team_a_name: 'Galáticos Cpla', team_b_name: 'Gama', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Ginásio Poliesportivo', round: 3 },
+  { id: 'match-fut-1', modality_id: 'futsal-masc', phase: 'Fase de Grupos', group_name: 'Grupo A', team_a_id: 'fut-m-galaticos', team_b_id: 'fut-m-gatopreto', team_a_name: 'Galáticos Cpla', team_b_name: 'Gato Preto - CCEI', score_a: 4, score_b: 2, status: 'Finalizado', match_date: '10/11/2026', match_time: '09:00', venue: 'Campus Planaltina', round: 1 },
+  { id: 'match-fut-2', modality_id: 'futsal-masc', phase: 'Fase de Grupos', group_name: 'Grupo A', team_a_id: 'fut-m-gatopreto', team_b_id: 'fut-m-gama', team_a_name: 'Gato Preto - CCEI', team_b_name: 'Gama', score_a: 3, score_b: 3, score_penalties_a: 3, score_penalties_b: 2, status: 'Finalizado', match_date: '10/11/2026', match_time: '10:30', venue: 'Campus Planaltina', round: 2 },
+  { id: 'match-fut-3', modality_id: 'futsal-masc', phase: 'Fase de Grupos', group_name: 'Grupo A', team_a_id: 'fut-m-galaticos', team_b_id: 'fut-m-gama', team_a_name: 'Galáticos Cpla', team_b_name: 'Gama', score_a: 2, score_b: 1, status: 'Ao Vivo', match_date: '11/11/2026', match_time: '14:00', venue: 'Campus Planaltina', round: 3 },
 
   // Futsal Masc - Grupo B
-  { id: 'match-fut-4', modality_id: 'futsal-masc', phase: 'Fase de Grupos', group_name: 'Grupo B', team_a_id: 'fut-m-sarues', team_b_id: 'fut-m-canela', team_a_name: 'Os Saruês', team_b_name: 'Canela de Ema', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Ginásio Poliesportivo', round: 1 },
-  { id: 'match-fut-5', modality_id: 'futsal-masc', phase: 'Fase de Grupos', group_name: 'Grupo B', team_a_id: 'fut-m-canela', team_b_id: 'fut-m-cachorroes', team_a_name: 'Canela de Ema', team_b_name: 'Cachorrões', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Ginásio Poliesportivo', round: 2 },
-  { id: 'match-fut-6', modality_id: 'futsal-masc', phase: 'Fase de Grupos', group_name: 'Grupo B', team_a_id: 'fut-m-sarues', team_b_id: 'fut-m-cachorroes', team_a_name: 'Os Saruês', team_b_name: 'Cachorrões', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Ginásio Poliesportivo', round: 3 },
+  { id: 'match-fut-4', modality_id: 'futsal-masc', phase: 'Fase de Grupos', group_name: 'Grupo B', team_a_id: 'fut-m-sarues', team_b_id: 'fut-m-canela', team_a_name: 'Os Saruês', team_b_name: 'Canela de Ema', score_a: 0, score_b: 0, status: 'Agendado', match_date: '11/11/2026', match_time: '15:30', venue: 'Campus Brasília', round: 1 },
+  { id: 'match-fut-5', modality_id: 'futsal-masc', phase: 'Fase de Grupos', group_name: 'Grupo B', team_a_id: 'fut-m-canela', team_b_id: 'fut-m-cachorroes', team_a_name: 'Canela de Ema', team_b_name: 'Cachorrões', score_a: 0, score_b: 0, status: 'Agendado', match_date: '12/11/2026', match_time: '09:00', venue: 'Campus Brasília', round: 2 },
+  { id: 'match-fut-6', modality_id: 'futsal-masc', phase: 'Fase de Grupos', group_name: 'Grupo B', team_a_id: 'fut-m-sarues', team_b_id: 'fut-m-cachorroes', team_a_name: 'Os Saruês', team_b_name: 'Cachorrões', score_a: 0, score_b: 0, status: 'Agendado', match_date: '12/11/2026', match_time: '10:30', venue: 'Campus Brasília', round: 3 },
 
   // Futsal Masc - Grupo C
-  { id: 'match-fut-7', modality_id: 'futsal-masc', phase: 'Fase de Grupos', group_name: 'Grupo C', team_a_id: 'fut-m-next', team_b_id: 'fut-m-deepriver', team_a_name: 'Next', team_b_name: 'Deep River', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Ginásio Poliesportivo', round: 1 },
-  { id: 'match-fut-8', modality_id: 'futsal-masc', phase: 'Fase de Grupos', group_name: 'Grupo C', team_a_id: 'fut-m-deepriver', team_b_id: 'fut-m-estrutural', team_a_name: 'Deep River', team_b_name: 'Campus Estrutural', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Ginásio Poliesportivo', round: 2 },
-  { id: 'match-fut-9', modality_id: 'futsal-masc', phase: 'Fase de Grupos', group_name: 'Grupo C', team_a_id: 'fut-m-next', team_b_id: 'fut-m-estrutural', team_a_name: 'Next', team_b_name: 'Campus Estrutural', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Ginásio Poliesportivo', round: 3 },
+  { id: 'match-fut-7', modality_id: 'futsal-masc', phase: 'Fase de Grupos', group_name: 'Grupo C', team_a_id: 'fut-m-next', team_b_id: 'fut-m-deepriver', team_a_name: 'Next', team_b_name: 'Deep River', score_a: 0, score_b: 0, status: 'Agendado', match_date: '12/11/2026', match_time: '14:00', venue: 'Campus Samambaia', round: 1 },
+  { id: 'match-fut-8', modality_id: 'futsal-masc', phase: 'Fase de Grupos', group_name: 'Grupo C', team_a_id: 'fut-m-deepriver', team_b_id: 'fut-m-estrutural', team_a_name: 'Deep River', team_b_name: 'Campus Estrutural', score_a: 0, score_b: 0, status: 'Agendado', match_date: '13/11/2026', match_time: '09:00', venue: 'Campus Samambaia', round: 2 },
+  { id: 'match-fut-9', modality_id: 'futsal-masc', phase: 'Fase de Grupos', group_name: 'Grupo C', team_a_id: 'fut-m-next', team_b_id: 'fut-m-estrutural', team_a_name: 'Next', team_b_name: 'Campus Estrutural', score_a: 0, score_b: 0, status: 'Agendado', match_date: '13/11/2026', match_time: '10:30', venue: 'Campus Samambaia', round: 3 },
 
   // Futsal Fem - Triangular
-  { id: 'match-futf-1', modality_id: 'futsal-fem', phase: 'Fase de Grupos', group_name: 'Triangular', team_a_id: 'fut-f-gatopreto', team_b_id: 'fut-f-donas', team_a_name: 'Gato Preto', team_b_name: 'Donas da bola', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Ginásio Poliesportivo', round: 1 },
-  { id: 'match-futf-2', modality_id: 'futsal-fem', phase: 'Fase de Grupos', group_name: 'Triangular', team_a_id: 'fut-f-donas', team_b_id: 'fut-f-sebastiana', team_a_name: 'Donas da bola', team_b_name: 'Sebastiana F.C.', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Ginásio Poliesportivo', round: 2 },
-  { id: 'match-futf-3', modality_id: 'futsal-fem', phase: 'Fase de Grupos', group_name: 'Triangular', team_a_id: 'fut-f-gatopreto', team_b_id: 'fut-f-sebastiana', team_a_name: 'Gato Preto', team_b_name: 'Sebastiana F.C.', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Ginásio Poliesportivo', round: 3 },
+  { id: 'match-futf-1', modality_id: 'futsal-fem', phase: 'Fase de Grupos', group_name: 'Triangular', team_a_id: 'fut-f-gatopreto', team_b_id: 'fut-f-donas', team_a_name: 'Gato Preto', team_b_name: 'Donas da bola', score_a: 3, score_b: 1, status: 'Finalizado', match_date: '10/11/2026', match_time: '14:00', venue: 'Campus Ceilândia', round: 1 },
+  { id: 'match-futf-2', modality_id: 'futsal-fem', phase: 'Fase de Grupos', group_name: 'Triangular', team_a_id: 'fut-f-donas', team_b_id: 'fut-f-sebastiana', team_a_name: 'Donas da bola', team_b_name: 'Sebastiana F.C.', score_a: 0, score_b: 0, status: 'Agendado', match_date: '11/11/2026', match_time: '16:00', venue: 'Campus Ceilândia', round: 2 },
+  { id: 'match-futf-3', modality_id: 'futsal-fem', phase: 'Fase de Grupos', group_name: 'Triangular', team_a_id: 'fut-f-gatopreto', team_b_id: 'fut-f-sebastiana', team_a_name: 'Gato Preto', team_b_name: 'Sebastiana F.C.', score_a: 0, score_b: 0, status: 'Agendado', match_date: '12/11/2026', match_time: '16:00', venue: 'Campus Ceilândia', round: 3 },
 
   // Vôlei Misto - Grupo A
-  { id: 'match-vol-1', modality_id: 'volei-misto', phase: 'Fase de Grupos', group_name: 'Grupo A', team_a_id: 'vol-m-ctag', team_b_id: 'vol-m-deepriver', team_a_name: 'Voleibol_Ctag', team_b_name: 'Deep River', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Quadra Coberta', round: 1 },
-  { id: 'match-vol-2', modality_id: 'volei-misto', phase: 'Fase de Grupos', group_name: 'Grupo A', team_a_id: 'vol-m-cpla', team_b_id: 'vol-m-boratime', team_a_name: 'CPLA', team_b_name: 'Bora Time', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Quadra Coberta', round: 1 },
-  { id: 'match-vol-3', modality_id: 'volei-misto', phase: 'Fase de Grupos', group_name: 'Grupo A', team_a_id: 'vol-m-ctag', team_b_id: 'vol-m-cpla', team_a_name: 'Voleibol_Ctag', team_b_name: 'CPLA', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Quadra Coberta', round: 2 },
-  { id: 'match-vol-4', modality_id: 'volei-misto', phase: 'Fase de Grupos', group_name: 'Grupo A', team_a_id: 'vol-m-deepriver', team_b_id: 'vol-m-boratime', team_a_name: 'Deep River', team_b_name: 'Bora Time', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Quadra Coberta', round: 2 },
-  { id: 'match-vol-5', modality_id: 'volei-misto', phase: 'Fase de Grupos', group_name: 'Grupo A', team_a_id: 'vol-m-ctag', team_b_id: 'vol-m-boratime', team_a_name: 'Voleibol_Ctag', team_b_name: 'Bora Time', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Quadra Coberta', round: 3 },
-  { id: 'match-vol-6', modality_id: 'volei-misto', phase: 'Fase de Grupos', group_name: 'Grupo A', team_a_id: 'vol-m-deepriver', team_b_id: 'vol-m-cpla', team_a_name: 'Deep River', team_b_name: 'CPLA', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Quadra Coberta', round: 3 },
-
-  // Vôlei Misto - Grupo B
-  { id: 'match-vol-7', modality_id: 'volei-misto', phase: 'Fase de Grupos', group_name: 'Grupo B', team_a_id: 'vol-m-canela', team_b_id: 'vol-m-gatopreto', team_a_name: 'Canela de Ema', team_b_name: 'Gato Preto CCEI', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Quadra Coberta', round: 1 },
-  { id: 'match-vol-8', modality_id: 'volei-misto', phase: 'Fase de Grupos', group_name: 'Grupo B', team_a_id: 'vol-m-titas', team_b_id: 'vol-m-semdidatica', team_a_name: 'Titãs do Vôlei', team_b_name: 'Sem Didática Para Jogar', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Quadra Coberta', round: 1 },
-  { id: 'match-vol-9', modality_id: 'volei-misto', phase: 'Fase de Grupos', group_name: 'Grupo B', team_a_id: 'vol-m-canela', team_b_id: 'vol-m-titas', team_a_name: 'Canela de Ema', team_b_name: 'Titãs do Vôlei', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Quadra Coberta', round: 2 },
-  { id: 'match-vol-10', modality_id: 'volei-misto', phase: 'Fase de Grupos', group_name: 'Grupo B', team_a_id: 'vol-m-gatopreto', team_b_id: 'vol-m-semdidatica', team_a_name: 'Gato Preto CCEI', team_b_name: 'Sem Didática Para Jogar', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Quadra Coberta', round: 2 },
-  { id: 'match-vol-11', modality_id: 'volei-misto', phase: 'Fase de Grupos', group_name: 'Grupo B', team_a_id: 'vol-m-canela', team_b_id: 'vol-m-semdidatica', team_a_name: 'Canela de Ema', team_b_name: 'Sem Didática Para Jogar', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Quadra Coberta', round: 3 },
-  { id: 'match-vol-12', modality_id: 'volei-misto', phase: 'Fase de Grupos', group_name: 'Grupo B', team_a_id: 'vol-m-gatopreto', team_b_id: 'vol-m-titas', team_a_name: 'Gato Preto CCEI', team_b_name: 'Titãs do Vôlei', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Quadra Coberta', round: 3 },
+  { id: 'match-vol-1', modality_id: 'volei-misto', phase: 'Fase de Grupos', group_name: 'Grupo A', team_a_id: 'vol-m-ctag', team_b_id: 'vol-m-deepriver', team_a_name: 'Voleibol_Ctag', team_b_name: 'Deep River', score_a: 2, score_b: 0, sets_detail: '25x21, 25x18', status: 'Finalizado', match_date: '10/11/2026', match_time: '10:00', venue: 'Campus Taguatinga', round: 1 },
+  { id: 'match-vol-2', modality_id: 'volei-misto', phase: 'Fase de Grupos', group_name: 'Grupo A', team_a_id: 'vol-m-cpla', team_b_id: 'vol-m-boratime', team_a_name: 'CPLA', team_b_name: 'Bora Time', score_a: 1, score_b: 2, sets_detail: '22x25, 25x23, 12x15', status: 'Finalizado', match_date: '10/11/2026', match_time: '11:30', venue: 'Campus Taguatinga', round: 1 },
+  { id: 'match-vol-3', modality_id: 'volei-misto', phase: 'Fase de Grupos', group_name: 'Grupo A', team_a_id: 'vol-m-ctag', team_b_id: 'vol-m-cpla', team_a_name: 'Voleibol_Ctag', team_b_name: 'CPLA', score_a: 1, score_b: 1, sets_detail: 'Em andamento (1x1)', status: 'Ao Vivo', match_date: '11/11/2026', match_time: '10:00', venue: 'Campus Taguatinga', round: 2 },
+  { id: 'match-vol-4', modality_id: 'volei-misto', phase: 'Fase de Grupos', group_name: 'Grupo A', team_a_id: 'vol-m-deepriver', team_b_id: 'vol-m-boratime', team_a_name: 'Deep River', team_b_name: 'Bora Time', score_a: 0, score_b: 0, status: 'Agendado', match_date: '11/11/2026', match_time: '11:30', venue: 'Campus Taguatinga', round: 2 },
 
   // Basquete 3x3 Masc
-  { id: 'match-bas-1', modality_id: 'basquete-masc', phase: 'Fase de Grupos', group_name: 'Grupo A', team_a_id: 'bas-m-estrutural', team_b_id: 'bas-m-canela', team_a_name: 'Estrutural', team_b_name: 'Canela de Ema', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Quadra de Basquete', round: 1 },
-  { id: 'match-bas-2', modality_id: 'basquete-masc', phase: 'Fase de Grupos', group_name: 'Grupo A', team_a_id: 'bas-m-canela', team_b_id: 'bas-m-quitados', team_a_name: 'Canela de Ema', team_b_name: 'Quitados e Queimados', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Quadra de Basquete', round: 2 },
-  { id: 'match-bas-3', modality_id: 'basquete-masc', phase: 'Fase de Grupos', group_name: 'Grupo A', team_a_id: 'bas-m-estrutural', team_b_id: 'bas-m-quitados', team_a_name: 'Estrutural', team_b_name: 'Quitados e Queimados', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Quadra de Basquete', round: 3 },
-  { id: 'match-bas-4', modality_id: 'basquete-masc', phase: 'Fase de Grupos', group_name: 'Grupo B', team_a_id: 'bas-m-ctag', team_b_id: 'bas-m-gatopreto', team_a_name: 'CTAG Hoopers', team_b_name: 'Gato Preto CCEI', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Quadra de Basquete', round: 1 },
-  { id: 'match-bas-5', modality_id: 'basquete-masc', phase: 'Fase de Grupos', group_name: 'Grupo B', team_a_id: 'bas-m-gatopreto', team_b_id: 'bas-m-semdidatica', team_a_name: 'Gato Preto CCEI', team_b_name: 'Sem Didática Para Jogar', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Quadra de Basquete', round: 2 },
-  { id: 'match-bas-6', modality_id: 'basquete-masc', phase: 'Fase de Grupos', group_name: 'Grupo B', team_a_id: 'bas-m-ctag', team_b_id: 'bas-m-semdidatica', team_a_name: 'CTAG Hoopers', team_b_name: 'Sem Didática Para Jogar', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Quadra de Basquete', round: 3 },
-
-  // Basquete 3x3 Misto
-  { id: 'match-basx-1', modality_id: 'basquete-misto', phase: 'Fase de Grupos', group_name: 'Triangular', team_a_id: 'bas-x-jordana', team_b_id: 'bas-x-gatopreto2', team_a_name: 'Jordan\'as Tagua Clube', team_b_name: 'Gato Preto Misto 2', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Quadra de Basquete', round: 1 },
-  { id: 'match-basx-2', modality_id: 'basquete-misto', phase: 'Fase de Grupos', group_name: 'Triangular', team_a_id: 'bas-x-gatopreto2', team_b_id: 'bas-x-gatopreto1', team_a_name: 'Gato Preto Misto 2', team_b_name: 'Gato Preto Misto 1', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Quadra de Basquete', round: 2 },
-  { id: 'match-basx-3', modality_id: 'basquete-misto', phase: 'Fase de Grupos', group_name: 'Triangular', team_a_id: 'bas-x-jordana', team_b_id: 'bas-x-gatopreto1', team_a_name: 'Jordan\'as Tagua Clube', team_b_name: 'Gato Preto Misto 1', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Quadra de Basquete', round: 3 },
-
-  // Vôlei de Praia Masc
-  { id: 'match-vpr-1', modality_id: 'volei-praia-masc', phase: 'Fase de Grupos', group_name: 'Grupo A', team_a_id: 'vpr-m-cest', team_b_id: 'vpr-m-estrutural', team_a_name: 'CEST', team_b_name: 'Estrutural', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Arena de Areia 1', round: 1 },
-  { id: 'match-vpr-2', modality_id: 'volei-praia-masc', phase: 'Fase de Grupos', group_name: 'Grupo A', team_a_id: 'vpr-m-estrutural', team_b_id: 'vpr-m-bonde', team_a_name: 'Estrutural', team_b_name: 'Bonde da Ceilândia', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Arena de Areia 1', round: 2 },
-  { id: 'match-vpr-3', modality_id: 'volei-praia-masc', phase: 'Fase de Grupos', group_name: 'Grupo A', team_a_id: 'vpr-m-cest', team_b_id: 'vpr-m-bonde', team_a_name: 'CEST', team_b_name: 'Bonde da Ceilândia', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Arena de Areia 1', round: 3 },
-  { id: 'match-vpr-4', modality_id: 'volei-praia-masc', phase: 'Fase de Grupos', group_name: 'Grupo B', team_a_id: 'vpr-m-sarues', team_b_id: 'vpr-m-cei2', team_a_name: 'Os Saruês', team_b_name: 'IFB Ceilândia - Equipe 02', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Arena de Areia 2', round: 1 },
-  { id: 'match-vpr-5', modality_id: 'volei-praia-masc', phase: 'Fase de Grupos', group_name: 'Grupo B', team_a_id: 'vpr-m-cei2', team_b_id: 'vpr-m-canela', team_a_name: 'IFB Ceilândia - Equipe 02', team_b_name: 'Canela de Ema', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Arena de Areia 2', round: 2 },
-  { id: 'match-vpr-6', modality_id: 'volei-praia-masc', phase: 'Fase de Grupos', group_name: 'Grupo B', team_a_id: 'vpr-m-sarues', team_b_id: 'vpr-m-canela', team_a_name: 'Os Saruês', team_b_name: 'Canela de Ema', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Arena de Areia 2', round: 3 },
-  { id: 'match-vpr-7', modality_id: 'volei-praia-masc', phase: 'Fase de Grupos', group_name: 'Grupo C', team_a_id: 'vpr-m-semdidatica', team_b_id: 'vpr-m-gatopreto', team_a_name: 'Sem Didática para Jogar', team_b_name: 'Gato Preto - CCEI', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Arena de Areia 1', round: 1 },
-  { id: 'match-vpr-8', modality_id: 'volei-praia-masc', phase: 'Fase de Grupos', group_name: 'Grupo C', team_a_id: 'vpr-m-gatopreto', team_b_id: 'vpr-m-sand', team_a_name: 'Gato Preto - CCEI', team_b_name: 'Sand', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Arena de Areia 1', round: 2 },
-  { id: 'match-vpr-9', modality_id: 'volei-praia-masc', phase: 'Fase de Grupos', group_name: 'Grupo C', team_a_id: 'vpr-m-semdidatica', team_b_id: 'vpr-m-sand', team_a_name: 'Sem Didática para Jogar', team_b_name: 'Sand', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Arena de Areia 1', round: 3 },
+  { id: 'match-bas-1', modality_id: 'basquete-masc', phase: 'Fase de Grupos', group_name: 'Grupo A', team_a_id: 'bas-m-estrutural', team_b_id: 'bas-m-canela', team_a_name: 'Estrutural', team_b_name: 'Canela de Ema', score_a: 21, score_b: 15, status: 'Finalizado', match_date: '10/11/2026', match_time: '14:30', venue: 'Campus Estrutural', round: 1 },
+  { id: 'match-bas-2', modality_id: 'basquete-masc', phase: 'Fase de Grupos', group_name: 'Grupo A', team_a_id: 'bas-m-canela', team_b_id: 'bas-m-quitados', team_a_name: 'Canela de Ema', team_b_name: 'Quitados e Queimados', score_a: 0, score_b: 0, status: 'Agendado', match_date: '11/11/2026', match_time: '14:30', venue: 'Campus Estrutural', round: 2 },
+  { id: 'match-bas-3', modality_id: 'basquete-masc', phase: 'Fase de Grupos', group_name: 'Grupo A', team_a_id: 'bas-m-estrutural', team_b_id: 'bas-m-quitados', team_a_name: 'Estrutural', team_b_name: 'Quitados e Queimados', score_a: 0, score_b: 0, status: 'Agendado', match_date: '12/11/2026', match_time: '14:30', venue: 'Campus Estrutural', round: 3 },
 
   // Futevôlei Misto (Final Direta)
-  { id: 'match-futvx-1', modality_id: 'futevolei-misto', phase: 'Final', group_name: 'Final Direta', team_a_id: 'futv-x-soberanas', team_b_id: 'futv-x-deepriver', team_a_name: 'Soberanas do Taguá Clube', team_b_name: 'Deep River', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Arena de Areia Central', round: 1 },
-
-  // Queimada Mista
-  { id: 'match-que-1', modality_id: 'queimada-mista', phase: 'Fase de Grupos', group_name: 'Chave Única', team_a_id: 'que-x-elite', team_b_id: 'que-x-gatopreto', team_a_name: 'Elite', team_b_name: 'Gato Preto - CCEI', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Quadra Central', round: 1 },
-  { id: 'match-que-2', modality_id: 'queimada-mista', phase: 'Fase de Grupos', group_name: 'Chave Única', team_a_id: 'que-x-endorfinadas', team_b_id: 'que-x-deepriver', team_a_name: 'Endorfinadas IFB', team_b_name: 'Deep River', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Quadra Central', round: 1 },
-  { id: 'match-que-3', modality_id: 'queimada-mista', phase: 'Fase de Grupos', group_name: 'Chave Única', team_a_id: 'que-x-semdidatica', team_b_id: 'que-x-donas', team_a_name: 'Sem Didática Para Jogar', team_b_name: 'Donas da Bola', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Quadra Central', round: 1 },
+  { id: 'match-futvx-1', modality_id: 'futevolei-misto', phase: 'Final', group_name: 'Final Direta', team_a_id: 'futv-x-soberanas', team_b_id: 'futv-x-deepriver', team_a_name: 'Soberanas do Taguá Clube', team_b_name: 'Deep River', score_a: 0, score_b: 0, status: 'Agendado', match_date: '14/11/2026', match_time: '16:00', venue: 'Campus Taguatinga', round: 1 },
 
   // Handebol Misto
-  { id: 'match-han-1', modality_id: 'handebol-misto', phase: 'Fase de Grupos', group_name: 'Chave Única', team_a_id: 'han-x-furia', team_b_id: 'han-x-deepriver', team_a_name: 'Fúria Ctga', team_b_name: 'Deep River', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Ginásio Poliesportivo', round: 1 },
-  { id: 'match-han-2', modality_id: 'handebol-misto', phase: 'Fase de Grupos', group_name: 'Chave Única', team_a_id: 'han-x-gatopreto', team_b_id: 'han-x-semdidatica', team_a_name: 'Gato Preto CCEI', team_b_name: 'Sem Didática Para Jogar', score_a: 0, score_b: 0, status: 'Agendado', match_date: 'A definir', match_time: 'A definir', venue: 'Ginásio Poliesportivo', round: 1 },
+  { id: 'match-han-1', modality_id: 'handebol-misto', phase: 'Fase de Grupos', group_name: 'Chave Única', team_a_id: 'han-x-furia', team_b_id: 'han-x-deepriver', team_a_name: 'Fúria Ctga', team_b_name: 'Deep River', score_a: 14, score_b: 10, status: 'Finalizado', match_date: '10/11/2026', match_time: '16:00', venue: 'Campus Taguatinga', round: 1 },
+  { id: 'match-han-2', modality_id: 'handebol-misto', phase: 'Fase de Grupos', group_name: 'Chave Única', team_a_id: 'han-x-gatopreto', team_b_id: 'han-x-semdidatica', team_a_name: 'Gato Preto CCEI', team_b_name: 'Sem Didática Para Jogar', score_a: 0, score_b: 0, status: 'Agendado', match_date: '11/11/2026', match_time: '16:30', venue: 'Campus Taguatinga', round: 1 },
 ];
-
-import fullRegulations from './fullRegulations.json';
 
 export const INITIAL_REGULATIONS: Regulation[] = fullRegulations as Regulation[];
 
 export const INITIAL_NOTICES: Notice[] = [
   {
     id: 'notice-1',
-    title: 'Boas-vindas aos Jogos de Integração JIS-IFB 2026!',
-    content: 'A PRGP e a Comissão Organizadora dão as boas-vindas a todos os servidores, estagiários e colaboradores participantes. Consulte os regulamentos e cronogramas.',
-    category: 'Geral',
-    published_at: '2026-10-30T10:00:00Z',
+    title: 'Abertura Oficial dos Jogos JIS-IFB 2026',
+    summary: 'Cerimônia magna de abertura reúne atletas de todos os 10 Campi e Reitoria em celebração esportiva.',
+    content: 'A Pró-Reitoria de Gestão de Pessoas (PRGP) e a Comissão Organizadora dão início oficial aos Jogos de Integração dos Servidores do IFB 2026. Venha prestigiar as equipes, apoiar seus colegas e viver o espírito de união e bem-estar que marca a nossa instituição.',
+    category: 'Destaque',
+    image_url: '/images/logo-jis.png',
+    author: 'Comissão Organizadora PRGP',
+    published_at: '2026-11-04T08:00:00Z',
+    pinned: true,
   },
   {
     id: 'notice-2',
-    title: 'Abertura da Etapa "Primeiro Lance"',
-    content: 'As disputas de Damas, Tênis de Mesa e Xadrez iniciarão nos campi em ambientes controlados. Confira a tabela de rodadas.',
+    title: 'Primeiro Lance: Início dos Torneios de Xadrez e Tênis de Mesa',
+    summary: 'Etapa inicial reúne enxadristas e mesa-tenistas nos Campi sede com partidas acirradas.',
+    content: 'As disputas das modalidades individuais começaram com grande entusiasmo. O sistema suíço de xadrez e as chaves de grupos do tênis de mesa já estão disponíveis para consulta no portal oficial.',
     category: 'Técnico',
-    published_at: '2026-10-30T11:00:00Z',
+    image_url: '/images/logo-jis.png',
+    author: 'Subcomissão de Esportes Individuais',
+    published_at: '2026-11-04T10:30:00Z',
+    pinned: false,
+  },
+  {
+    id: 'notice-3',
+    title: 'Orientações para o Desafio da Corrida e Caminhada',
+    summary: 'Saiba como registrar suas distâncias percorridas e somar pontos preciosos para o seu Campus.',
+    content: 'A corrida e caminhada dos servidores segue em ritmo forte! Os registros de distância devem ser enviados à comissão técnica de cada unidade para inserção na planilha oficial de quilometragem acumulada.',
+    category: 'Geral',
+    image_url: '/images/logo-jis.png',
+    author: 'Diretoria de Qualidade de Vida (DRDP)',
+    published_at: '2026-11-04T12:00:00Z',
+    pinned: false,
   },
 ];
 
+export const INITIAL_DISTANCES: DistanceRecord[] = [
+  { id: 'dist-1', participant_name: 'Carlos Eduardo Mendes', campus_id: 'campus-brasilia', distance_km: 18.5, category: 'Servidor', created_at: '2026-11-04T10:00:00Z' },
+  { id: 'dist-2', participant_name: 'Juliana Costa Ferreira', campus_id: 'campus-taguatinga', distance_km: 16.2, category: 'Servidora', created_at: '2026-11-04T10:30:00Z' },
+  { id: 'dist-3', participant_name: 'Marcos Vinícius Silva', campus_id: 'campus-planaltina', distance_km: 15.0, category: 'Servidor', created_at: '2026-11-04T11:00:00Z' },
+  { id: 'dist-4', participant_name: 'Patrícia Albuquerque', campus_id: 'campus-ceilandia', distance_km: 14.8, category: 'Servidora', created_at: '2026-11-04T11:30:00Z' },
+  { id: 'dist-5', participant_name: 'Fernando Rocha Lima', campus_id: 'campus-estrutural', distance_km: 12.4, category: 'Servidor', created_at: '2026-11-04T12:00:00Z' },
+  { id: 'dist-6', participant_name: 'Beatriz Nogueira', campus_id: 'reitoria', distance_km: 11.7, category: 'Servidora', created_at: '2026-11-04T12:30:00Z' },
+  { id: 'dist-7', participant_name: 'Lucas Guimarães', campus_id: 'campus-gama', distance_km: 10.5, category: 'Servidor', created_at: '2026-11-04T13:00:00Z' },
+  { id: 'dist-8', participant_name: 'Renata Vasconcelos', campus_id: 'campus-samambaia', distance_km: 9.8, category: 'Servidora', created_at: '2026-11-04T13:30:00Z' },
+];

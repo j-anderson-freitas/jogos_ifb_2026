@@ -21,11 +21,11 @@ export const M3TopAppBar: React.FC<M3TopAppBarProps> = ({
   onTabChange,
 }) => {
   const navItems = [
-    { id: 'jogos', label: 'Jogos & Ao Vivo' },
+    { id: 'jogos', label: 'Jogos & Programação' },
+    { id: 'noticias', label: 'Notícias' },
     { id: 'chaveamento', label: 'Chaveamento' },
     { id: 'classificacao', label: 'Classificação' },
     { id: 'pontuacao', label: 'Pontuação Geral' },
-    { id: 'cronograma', label: 'Cronograma' },
     { id: 'regulamento', label: 'Regulamento' },
   ];
 
@@ -38,7 +38,7 @@ export const M3TopAppBar: React.FC<M3TopAppBarProps> = ({
         <div className="flex items-center justify-between h-18 sm:h-22 gap-4 py-2">
           {/* Logos Oficiais: JIS-IFB & Instituto Federal Brasília */}
           <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-            {/* Logo dos Jogos de Integração */}
+            {/* Logo dos Jogos de Integração (alta definição PNG) */}
             <img
               src="/images/logo-jis.png"
               alt="Logo oficial dos Jogos de Integração dos Servidores do IFB"

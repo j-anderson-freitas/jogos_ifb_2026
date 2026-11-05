@@ -8,6 +8,7 @@ import {
   IndividualPodium,
   Regulation,
   Notice,
+  DistanceRecord,
 } from '../types/database';
 import {
   getCampuses,
@@ -18,7 +19,9 @@ import {
   getNotices,
   getParticipants,
   getPodiums,
+  getDistances,
   subscribeToMatches,
+  syncRegulationsToSupabase,
 } from '../lib/supabase';
 
 export interface UseJISDataReturn {
@@ -30,8 +33,10 @@ export interface UseJISDataReturn {
   notices: Notice[];
   participants: IndividualParticipant[];
   podiums: IndividualPodium[];
+  distances: DistanceRecord[];
   isLoading: boolean;
   refreshData: () => Promise<void>;
+  syncRegulations: () => Promise<boolean>;
 }
 
 export function useJISData(): UseJISDataReturn {
@@ -43,11 +48,12 @@ export function useJISData(): UseJISDataReturn {
   const [notices, setNotices] = useState<Notice[]>([]);
   const [participants, setParticipants] = useState<IndividualParticipant[]>([]);
   const [podiums, setPodiums] = useState<IndividualPodium[]>([]);
+  const [distances, setDistances] = useState<DistanceRecord[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const loadData = useCallback(async () => {
     try {
-      const [c, m, t, mat, r, n, part, pod] = await Promise.all([
+      const [c, m, t, mat, r, n, part, pod, dist] = await Promise.all([
         getCampuses(),
         getModalities(),
         getTeams(),
@@ -56,6 +62,7 @@ export function useJISData(): UseJISDataReturn {
         getNotices(),
         getParticipants(),
         getPodiums(),
+        getDistances(),
       ]);
       setCampuses(c);
       setModalities(m);
@@ -65,11 +72,21 @@ export function useJISData(): UseJISDataReturn {
       setNotices(n);
       setParticipants(part);
       setPodiums(pod);
+      setDistances(dist);
     } catch (err) {
       console.error('Erro ao sincronizar dados do JIS:', err);
     } finally {
       setIsLoading(false);
     }
+  }, []);
+
+  const handleSyncRegulations = useCallback(async (): Promise<boolean> => {
+    const success = await syncRegulationsToSupabase();
+    if (success) {
+      const fresh = await getRegulations();
+      setRegulations(fresh);
+    }
+    return success;
   }, []);
 
   useEffect(() => {
@@ -94,8 +111,9 @@ export function useJISData(): UseJISDataReturn {
     notices,
     participants,
     podiums,
+    distances,
     isLoading,
     refreshData: loadData,
+    syncRegulations: handleSyncRegulations,
   };
 }
-

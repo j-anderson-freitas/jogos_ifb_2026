@@ -5,6 +5,22 @@ export interface Campus {
   city: string;
 }
 
+export const IFB_UNITS = [
+  'Campus Brasília',
+  'Campus Ceilândia',
+  'Campus Estrutural',
+  'Campus Gama',
+  'Campus Planaltina',
+  'Campus Recanto das Emas',
+  'Campus Riacho Fundo',
+  'Campus Samambaia',
+  'Campus São Sebastião',
+  'Campus Taguatinga',
+  'Reitoria',
+] as const;
+
+export type IFBUnit = typeof IFB_UNITS[number];
+
 export type ModalityCategory = 'Masculino' | 'Feminino' | 'Misto' | 'Mista' | 'Aberto' | 'Fem e Absoluto' | 'Masc e Fem' | 'M/F Participativa';
 export type ModalityType = 'coletiva' | 'individual';
 export type ModalityStage = 'Primeiro Lance' | 'Geral';
@@ -62,6 +78,15 @@ export interface IndividualPodium {
   created_at?: string;
 }
 
+export interface DistanceRecord {
+  id: string;
+  participant_name: string;
+  campus_id: string;
+  distance_km: number;
+  category?: 'Servidor' | 'Servidora' | 'Geral';
+  created_at?: string;
+}
+
 export type MatchStatus = 'Agendado' | 'Ao Vivo' | 'Finalizado' | 'Adiado';
 
 export interface Match {
@@ -90,9 +115,13 @@ export interface Match {
 export interface Notice {
   id: string;
   title: string;
+  summary?: string;
   content: string;
-  category: 'Urgente' | 'Técnico' | 'Geral';
+  image_url?: string;
+  author?: string;
+  category: 'Destaque' | 'Urgente' | 'Técnico' | 'Geral';
   published_at: string;
+  pinned?: boolean;
 }
 
 export interface Regulation {

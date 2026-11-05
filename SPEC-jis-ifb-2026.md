@@ -59,6 +59,21 @@ jis_IFB_2026/
 │   │   │   ├── AdminLogin.tsx
 │   │   │   ├── MatchManager.tsx
 │   │   │   ├── TeamManager.tsx
+│   │   │   ├── IndividualManager.tsx # Gestão de pódios, participantes e importador CSV de Km
+│   │   │   └── NewsManager.tsx       # Gestão e publicação de notícias com upload de fotos
+│   │   ├── m3/                  # Componentes Material Design 3
+│   │   │   ├── M3Button.tsx
+│   │   │   ├── M3Card.tsx
+│   │   │   ├── M3Dialog.tsx
+│   │   │   └── M3TopAppBar.tsx
+│   │   └── public/              # Módulo public-portal
+│   │       ├── BracketView.tsx
+│   │       ├── HybridMedalsTable.tsx # 3 Modos: Híbrido, Olímpico e Apenas Pontos
+│   │       ├── LiveScoreboard.tsx    # Dashboard principal unificado com calendário
+│   │       ├── NewsView.tsx          # Portal de notícias oficial com leitor modal
+│   │       ├── RegulationsView.tsx   # Regulamento oficial íntegro (22 seções)
+│   │       └── StandingsTable.tsx
+│   │   │   ├── TeamManager.tsx
 │   │   │   ├── IndividualManager.tsx
 │   │   │   └── BackupExport.tsx
 │   │   ├── avatars/             # Avatars vetoriais das 26 equipes
