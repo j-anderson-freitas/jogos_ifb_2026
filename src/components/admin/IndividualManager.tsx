@@ -401,7 +401,7 @@ export const IndividualManager: React.FC<IndividualManagerProps> = ({
               />
             </div>
             <p className="text-xs text-slate-500">
-              Cada inscrição em modalidade individual garante 1 ponto de participação para o Campus.
+              Servidores inscritos nas modalidades individuais e na caminhada/corrida.
             </p>
           </div>
 
@@ -758,7 +758,7 @@ export const IndividualManager: React.FC<IndividualManagerProps> = ({
       <M3Dialog
         isOpen={isParticipantModalOpen}
         onClose={() => setIsParticipantModalOpen(false)}
-        title="Cadastrar Servidor Participante (1 pt por inscrição)"
+        title="Cadastrar Servidor Participante"
       >
         <form onSubmit={handleParticipantSubmit} className="space-y-4">
           <div>

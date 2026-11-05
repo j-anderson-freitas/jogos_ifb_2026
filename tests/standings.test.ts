@@ -16,16 +16,15 @@ test('Cálculo de pontos do Regulamento Oficial - Futsal', () => {
   assert.equal(regularDraw, 1, 'Empate com derrota nos pênaltis deve conceder 1 ponto');
 });
 
-test('Pontuação Ponderada de Medalhas por Campus', () => {
+test('Pontuação Ponderada de Medalhas por Campus (1º = 10 pts, 2º = 7 pts, 3º = 5 pts)', () => {
   const goldPoints = 10;
   const silverPoints = 7;
   const bronzePoints = 5;
-  const participationPoints = 1;
 
-  // Campus com 2 Ouros, 1 Prata, 1 Bronze e 5 participantes
-  const total = 2 * goldPoints + 1 * silverPoints + 1 * bronzePoints + 5 * participationPoints;
-  assert.equal(total, 20 + 7 + 5 + 5);
-  assert.equal(total, 37, 'Total de pontos deve ser 37');
+  // Campus com 2 Ouros, 1 Prata, 1 Bronze
+  const total = 2 * goldPoints + 1 * silverPoints + 1 * bronzePoints;
+  assert.equal(total, 20 + 7 + 5);
+  assert.equal(total, 32, 'Total de pontos deve ser 32');
 });
 
 test('Desempate: Saldo de Gols', () => {
