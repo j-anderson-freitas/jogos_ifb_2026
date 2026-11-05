@@ -56,40 +56,65 @@ export const LiveScoreboard: React.FC<LiveScoreboardProps> = ({
   const [selectedVenue, setSelectedVenue] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'Ao Vivo' | 'Finalizado' | 'Agendado'>('all');
 
-  // Extrair e ordenar todas as datas únicas das partidas
+  // Helper para conversão de data/hora para ordenação cronológica estrita
+  const parseDateTime = (d?: string, t?: string): number => {
+    if (!d || d === 'A definir') return Number.MAX_SAFE_INTEGER;
+    const parts = d.split('/').map(Number);
+    const day = parts[0] || 1;
+    const month = (parts[1] || 1) - 1;
+    const year = parts[2] || 2026;
+    let hours = 0;
+    let minutes = 0;
+    if (t && t.includes(':')) {
+      const timeParts = t.split(':').map(Number);
+      hours = timeParts[0] || 0;
+      minutes = timeParts[1] || 0;
+    }
+    return new Date(year, month, day, hours, minutes).getTime();
+  };
+
+  // Extrair e ordenar todas as datas únicas das partidas em ordem cronológica
   const availableDates = useMemo(() => {
     const dates = Array.from(new Set(matches.map((m) => m.match_date).filter(Boolean)));
     return dates.sort((a, b) => {
-      if (a === 'A definir') return 1;
-      if (b === 'A definir') return -1;
-      // Ordenação no formato dd/mm/aaaa
-      const [dA, mA, yA] = a.split('/').map(Number);
-      const [dB, mB, yB] = b.split('/').map(Number);
-      const dateA = new Date(yA || 2026, (mA || 1) - 1, dA || 1).getTime();
-      const dateB = new Date(yB || 2026, (mB || 1) - 1, dB || 1).getTime();
-      return dateA - dateB;
+      return parseDateTime(a) - parseDateTime(b);
     });
   }, [matches]);
 
   // Se datas da lista estiverem vazias, fornece fallback oficial
-  const datesList = availableDates.length > 0 ? availableDates : ['10/11/2026', '11/11/2026', '12/11/2026', '13/11/2026', '14/11/2026'];
+  const datesList = availableDates.length > 0 ? availableDates : ['07/11/2026', '10/11/2026', '11/11/2026', '12/11/2026', '13/11/2026', '14/11/2026'];
 
-  // Filtragem composta
+  // Listas ordenadas alfabeticamente para os filtros
+  const sortedTeams = useMemo(() => {
+    return [...teams].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+  }, [teams]);
+
+  const sortedModalities = useMemo(() => {
+    return [...modalities].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+  }, [modalities]);
+
+  const sortedVenues = useMemo(() => {
+    return [...IFB_UNITS].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }, []);
+
+  // Filtragem composta com ordenação cronológica estrita (da primeira data até a última data futura)
   const filteredMatches = useMemo(() => {
-    return matches.filter((m) => {
-      const matchDate = selectedDate === 'all' || m.match_date === selectedDate;
-      const matchModality = selectedModality === 'all' || m.modality_id === selectedModality;
-      const matchTeam =
-        selectedTeam === 'all' ||
-        m.team_a_id === selectedTeam ||
-        m.team_b_id === selectedTeam ||
-        m.team_a_name === selectedTeam ||
-        m.team_b_name === selectedTeam;
-      const matchVenue = selectedVenue === 'all' || m.venue === selectedVenue;
-      const matchStatus = statusFilter === 'all' || m.status === statusFilter;
+    return matches
+      .filter((m) => {
+        const matchDate = selectedDate === 'all' || m.match_date === selectedDate;
+        const matchModality = selectedModality === 'all' || m.modality_id === selectedModality;
+        const matchTeam =
+          selectedTeam === 'all' ||
+          m.team_a_id === selectedTeam ||
+          m.team_b_id === selectedTeam ||
+          m.team_a_name === selectedTeam ||
+          m.team_b_name === selectedTeam;
+        const matchVenue = selectedVenue === 'all' || m.venue === selectedVenue;
+        const matchStatus = statusFilter === 'all' || m.status === statusFilter;
 
-      return matchDate && matchModality && matchTeam && matchVenue && matchStatus;
-    });
+        return matchDate && matchModality && matchTeam && matchVenue && matchStatus;
+      })
+      .sort((a, b) => parseDateTime(a.match_date, a.match_time) - parseDateTime(b.match_date, b.match_time));
   }, [matches, selectedDate, selectedModality, selectedTeam, selectedVenue, statusFilter]);
 
   const liveMatches = matches.filter((m) => m.status === 'Ao Vivo');
@@ -178,65 +203,18 @@ export const LiveScoreboard: React.FC<LiveScoreboardProps> = ({
           </motion.div>
         )}
 
-        {/* 2. CALENDÁRIO INTERATIVO (RÉGUA DE DATAS) */}
+        {/* 2. PAINEL DE FILTROS & CALENDÁRIO */}
         <div className="bg-m3-surface-container dark:bg-m3-surface-container-dark p-4 rounded-m3-lg border border-m3-outline-variant/30 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-              <Calendar size={14} className="text-m3-primary" />
-              Calendário de Competição por Data
-            </span>
-            <span className="text-xs text-slate-400">
-              {filteredMatches.length} confronto(s) encontrado(s)
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
-            <button
-              onClick={() => setSelectedDate('all')}
-              className={`px-3.5 py-2 rounded-m3-md text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
-                selectedDate === 'all'
-                  ? 'bg-m3-primary text-white shadow-sm dark:bg-m3-primary-dark dark:text-black font-extrabold'
-                  : 'bg-m3-surface dark:bg-m3-surface-dark text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 border border-m3-outline-variant/40'
-              }`}
-            >
-              Todos os dias
-            </button>
-            {datesList.map((d) => {
-              const count = matches.filter((m) => m.match_date === d).length;
-              const isSelected = selectedDate === d;
-              return (
-                <button
-                  key={d}
-                  onClick={() => setSelectedDate(d)}
-                  className={`px-3.5 py-2 rounded-m3-md text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 ${
-                    isSelected
-                      ? 'bg-m3-primary text-white shadow-sm dark:bg-m3-primary-dark dark:text-black font-extrabold'
-                      : 'bg-m3-surface dark:bg-m3-surface-dark text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 border border-m3-outline-variant/40'
-                  }`}
-                >
-                  <span>{d}</span>
-                  <span
-                    className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
-                      isSelected
-                        ? 'bg-white/20 text-white dark:bg-black/20 dark:text-black font-black'
-                        : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
-                    }`}
-                  >
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* 3. PAINEL DE FILTROS COMBINADOS */}
-        <div className="bg-m3-surface-container-low dark:bg-m3-surface-container-low-dark p-4 rounded-m3-lg border border-m3-outline-variant/30 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-              <Filter size={14} className="text-m3-primary" />
-              Filtros de Jogos
-            </span>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Calendar size={16} className="text-m3-primary dark:text-m3-primary-dark" />
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                Programação & Filtros de Jogos
+              </span>
+              <span className="text-[11px] px-2 py-0.5 rounded-full bg-m3-surface-variant dark:bg-m3-surface-variant-dark text-slate-600 dark:text-slate-300 font-semibold">
+                {filteredMatches.length} {filteredMatches.length === 1 ? 'evento' : 'eventos'}
+              </span>
+            </div>
             {(selectedDate !== 'all' ||
               selectedModality !== 'all' ||
               selectedTeam !== 'all' ||
@@ -250,35 +228,38 @@ export const LiveScoreboard: React.FC<LiveScoreboardProps> = ({
                   setSelectedVenue('all');
                   setStatusFilter('all');
                 }}
-                className="text-[11px] font-bold text-rose-500 hover:underline"
+                className="text-xs font-bold text-rose-500 hover:text-rose-600 hover:underline transition-colors"
               >
                 Limpar todos os filtros
               </button>
             )}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-            {/* Equipe / Campus */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            {/* 1. Data (Ordenada cronologicamente) */}
             <div>
-              <label htmlFor="filter-team" className="block text-[11px] font-semibold text-slate-500 mb-1">
-                Equipe / Delegação:
+              <label htmlFor="filter-date" className="block text-[11px] font-semibold text-slate-500 mb-1">
+                Data do Jogo / Evento:
               </label>
               <select
-                id="filter-team"
-                value={selectedTeam}
-                onChange={(e) => setSelectedTeam(e.target.value)}
-                className="w-full text-xs font-semibold rounded-m3-md bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-m3-primary text-slate-800 dark:text-slate-200"
+                id="filter-date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="w-full text-xs font-semibold rounded-m3-md bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-m3-primary text-slate-800 dark:text-slate-200"
               >
-                <option value="all">Todas as Equipes</option>
-                {teams.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
-                  </option>
-                ))}
+                <option value="all">Todas as Datas</option>
+                {datesList.map((d) => {
+                  const count = matches.filter((m) => m.match_date === d).length;
+                  return (
+                    <option key={d} value={d}>
+                      {d} {count > 0 ? `(${count})` : ''}
+                    </option>
+                  );
+                })}
               </select>
             </div>
 
-            {/* Modalidade */}
+            {/* 2. Modalidade (Ordenada alfabeticamente) */}
             <div>
               <label htmlFor="filter-modality" className="block text-[11px] font-semibold text-slate-500 mb-1">
                 Modalidade:
@@ -287,10 +268,10 @@ export const LiveScoreboard: React.FC<LiveScoreboardProps> = ({
                 id="filter-modality"
                 value={selectedModality}
                 onChange={(e) => setSelectedModality(e.target.value)}
-                className="w-full text-xs font-semibold rounded-m3-md bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-m3-primary text-slate-800 dark:text-slate-200"
+                className="w-full text-xs font-semibold rounded-m3-md bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-m3-primary text-slate-800 dark:text-slate-200"
               >
                 <option value="all">Todas as Modalidades</option>
-                {modalities.map((m) => (
+                {sortedModalities.map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.name} ({m.category})
                   </option>
@@ -298,7 +279,27 @@ export const LiveScoreboard: React.FC<LiveScoreboardProps> = ({
               </select>
             </div>
 
-            {/* Local (11 Unidades do IFB) */}
+            {/* 3. Equipe / Delegação (Ordenada alfabeticamente) */}
+            <div>
+              <label htmlFor="filter-team" className="block text-[11px] font-semibold text-slate-500 mb-1">
+                Equipe / Delegação:
+              </label>
+              <select
+                id="filter-team"
+                value={selectedTeam}
+                onChange={(e) => setSelectedTeam(e.target.value)}
+                className="w-full text-xs font-semibold rounded-m3-md bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-m3-primary text-slate-800 dark:text-slate-200"
+              >
+                <option value="all">Todas as Equipes</option>
+                {sortedTeams.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* 4. Local (Ordenada alfabeticamente) */}
             <div>
               <label htmlFor="filter-venue" className="block text-[11px] font-semibold text-slate-500 mb-1">
                 Local (Unidade IFB):
@@ -307,10 +308,10 @@ export const LiveScoreboard: React.FC<LiveScoreboardProps> = ({
                 id="filter-venue"
                 value={selectedVenue}
                 onChange={(e) => setSelectedVenue(e.target.value)}
-                className="w-full text-xs font-semibold rounded-m3-md bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-m3-primary text-slate-800 dark:text-slate-200"
+                className="w-full text-xs font-semibold rounded-m3-md bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-m3-primary text-slate-800 dark:text-slate-200"
               >
                 <option value="all">Todos os Locais</option>
-                {IFB_UNITS.map((u) => (
+                {sortedVenues.map((u) => (
                   <option key={u} value={u}>
                     {u}
                   </option>
@@ -318,32 +319,32 @@ export const LiveScoreboard: React.FC<LiveScoreboardProps> = ({
               </select>
             </div>
 
-            {/* Status */}
+            {/* 5. Status (Ordenado alfabeticamente) */}
             <div>
               <label htmlFor="filter-status" className="block text-[11px] font-semibold text-slate-500 mb-1">
-                Status do Jogo:
+                Status:
               </label>
               <select
                 id="filter-status"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="w-full text-xs font-semibold rounded-m3-md bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-m3-primary text-slate-800 dark:text-slate-200"
+                className="w-full text-xs font-semibold rounded-m3-md bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-m3-primary text-slate-800 dark:text-slate-200"
               >
                 <option value="all">Todos os Status</option>
-                <option value="Ao Vivo">Ao Vivo</option>
                 <option value="Agendado">Agendado</option>
+                <option value="Ao Vivo">Ao Vivo</option>
                 <option value="Finalizado">Finalizado</option>
               </select>
             </div>
           </div>
         </div>
 
-        {/* 4. GRADE PRINCIPAL DE JOGOS & CONFRONTOS */}
+        {/* 3. GRADE PRINCIPAL DE JOGOS & CONFRONTOS */}
         <section aria-label="Grade de Partidas">
           {filteredMatches.length === 0 ? (
             <div className="text-center py-12 bg-m3-surface-container-lowest dark:bg-m3-surface-container-lowest-dark rounded-m3-lg border border-dashed border-m3-outline-variant p-8">
               <AlertCircle className="w-10 h-10 text-slate-400 mx-auto mb-3" />
-              <h3 className="text-base font-bold text-slate-700 dark:text-slate-300">Nenhum confronto encontrado</h3>
+              <h3 className="text-base font-bold text-slate-700 dark:text-slate-300">Nenhum evento ou confronto encontrado</h3>
               <p className="text-xs sm:text-sm text-slate-500 mt-1">
                 Altere a data ou os filtros acima para visualizar os outros jogos do cronograma.
               </p>
@@ -352,7 +353,9 @@ export const LiveScoreboard: React.FC<LiveScoreboardProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <AnimatePresence>
                 {filteredMatches.map((match) => {
+                  const isSingleEvent = !match.team_b_name || !match.team_b_name.trim();
                   const { displayScoreA, displayScoreB } = formatScoreDisplay(match);
+
                   return (
                     <motion.div
                       key={match.id}
@@ -375,51 +378,72 @@ export const LiveScoreboard: React.FC<LiveScoreboardProps> = ({
                           <M3Badge status={match.status} />
                         </div>
 
-                        {/* Confronto e Placar Principal */}
-                        <div className="grid grid-cols-5 items-center gap-2 py-3">
-                          {/* Equipe A */}
-                          <div className="col-span-2 flex flex-col items-center text-center gap-2">
-                            <TeamAvatar avatarKey={getTeamAvatarKey(teams, match.team_a_id)} name={match.team_a_name} size="md" />
-                            <span className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white line-clamp-2 leading-tight">
-                              {match.team_a_name}
-                            </span>
-                            {match.score_penalties_a !== null && match.score_penalties_a !== undefined && (
-                              <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                                Pên: {match.score_penalties_a}
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Placar Central */}
-                          <div className="col-span-1 flex flex-col items-center justify-center">
-                            <div
-                              className="flex items-center gap-1.5 font-mono text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight"
-                              aria-label={`Placar: ${match.team_a_name} ${displayScoreA}, ${match.team_b_name} ${displayScoreB}`}
-                            >
-                              <span>{displayScoreA}</span>
-                              <span className="text-xs font-normal text-slate-400 font-sans">x</span>
-                              <span>{displayScoreB}</span>
+                        {/* Corpo: Evento Único vs Confronto Coletivo */}
+                        {isSingleEvent ? (
+                          <div className="py-4 px-2 flex items-center gap-3.5 my-auto">
+                            <div className="w-12 h-12 rounded-m3-md bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/20">
+                              <Footprints className="w-6 h-6" />
                             </div>
-                            {match.sets_detail && (
-                              <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 mt-1 text-center">
-                                {match.sets_detail}
+                            <div className="flex-1 min-w-0">
+                              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 inline-block mb-1">
+                                Prova / Evento Programado
                               </span>
-                            )}
+                              <h4 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white leading-snug truncate">
+                                {match.team_a_name}
+                              </h4>
+                              {match.sets_detail && (
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
+                                  {match.sets_detail}
+                                </p>
+                              )}
+                            </div>
                           </div>
+                        ) : (
+                          <div className="grid grid-cols-5 items-center gap-2 py-3">
+                            {/* Equipe A */}
+                            <div className="col-span-2 flex flex-col items-center text-center gap-2">
+                              <TeamAvatar avatarKey={getTeamAvatarKey(teams, match.team_a_id)} name={match.team_a_name} size="md" />
+                              <span className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white line-clamp-2 leading-tight">
+                                {match.team_a_name}
+                              </span>
+                              {match.score_penalties_a !== null && match.score_penalties_a !== undefined && (
+                                <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                                  Pên: {match.score_penalties_a}
+                                </span>
+                              )}
+                            </div>
 
-                          {/* Equipe B */}
-                          <div className="col-span-2 flex flex-col items-center text-center gap-2">
-                            <TeamAvatar avatarKey={getTeamAvatarKey(teams, match.team_b_id)} name={match.team_b_name} size="md" />
-                            <span className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white line-clamp-2 leading-tight">
-                              {match.team_b_name}
-                            </span>
-                            {match.score_penalties_b !== null && match.score_penalties_b !== undefined && (
-                              <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                                Pên: {match.score_penalties_b}
+                            {/* Placar Central */}
+                            <div className="col-span-1 flex flex-col items-center justify-center">
+                              <div
+                                className="flex items-center gap-1.5 font-mono text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight"
+                                aria-label={`Placar: ${match.team_a_name} ${displayScoreA}, ${match.team_b_name} ${displayScoreB}`}
+                              >
+                                <span>{displayScoreA}</span>
+                                <span className="text-xs font-normal text-slate-400 font-sans">x</span>
+                                <span>{displayScoreB}</span>
+                              </div>
+                              {match.sets_detail && (
+                                <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 mt-1 text-center">
+                                  {match.sets_detail}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Equipe B */}
+                            <div className="col-span-2 flex flex-col items-center text-center gap-2">
+                              <TeamAvatar avatarKey={getTeamAvatarKey(teams, match.team_b_id)} name={match.team_b_name} size="md" />
+                              <span className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white line-clamp-2 leading-tight">
+                                {match.team_b_name}
                               </span>
-                            )}
+                              {match.score_penalties_b !== null && match.score_penalties_b !== undefined && (
+                                <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                                  Pên: {match.score_penalties_b}
+                                </span>
+                              )}
+                            </div>
                           </div>
-                        </div>
+                        )}
 
                         {/* Rodapé do Card com Data, Horário e Unidade IFB */}
                         <div className="mt-3 pt-2.5 border-t border-m3-outline-variant/30 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">

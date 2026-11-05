@@ -25,7 +25,7 @@ INSERT INTO modalities (id, name, category, type, stage, format, icon, rules_sum
   ('volei-misto', 'Vôlei de Quadra', 'Misto', 'coletiva', 'Geral', 'grupos_4', 'Activity', '2 grupos de 4. Melhor de 3 sets (25/15 pts). Semifinais cruzadas (1ºA x 2ºB, 1ºB x 2ºA), 3º e Final.', 3),
   ('basquete-masc', 'Basquete 3x3', 'Masculino', 'coletiva', 'Geral', 'grupos_3', 'Award', '2 grupos de 3. 10 minutos ou 21 pontos. Semifinais (1ºA x 2ºB, 1ºB x 2ºA) e Final.', 4),
   ('basquete-misto', 'Basquete 3x3', 'Misto', 'coletiva', 'Geral', 'triangular', 'Award', 'Triangular em turno único. Pontuação define o campeão.', 5),
-  ('volei-praia-masc', 'Vôlei de Praia', 'Masculino', 'coletiva', 'Geral', 'grupos_3', 'Sun', '3 grupos de 3 duplas. 1ºs de cada grupo + melhor 2º geral avançam para as Semifinais.', 6),
+  ('volei-praia-masc', 'Vôlei de Praia', 'Masculino', 'coletiva', 'Geral', 'grupos_4', 'Sun', '4 grupos (Grupos A, B e C com 3 duplas, Grupo D com 2 duplas). O 1º colocado de cada um dos 4 grupos avança diretamente para as Semifinais.', 6),
   ('futevolei-masc', 'Futevôlei', 'Masculino', 'coletiva', 'Geral', 'pontos_corridos', 'Disc', '5 duplas em pontos corridos (turno único). Set único de 18 pontos com vantagem de 2.', 7),
   ('futevolei-misto', 'Futevôlei', 'Misto', 'coletiva', 'Geral', 'confronto_direto', 'Disc', 'Confronto direto em melhor de 3 sets de 12 pontos.', 8),
   ('queimada-mista', 'Queimada', 'Mista', 'coletiva', 'Geral', 'chave_unica', 'Target', 'Chave única com 6 equipes em turno único. 4 melhores avançam para Semifinais (1ºx4º, 2ºx3º), 3º e Final.', 9),
@@ -88,6 +88,8 @@ INSERT INTO collective_teams (id, name, modality_id, group_name, initial_code, c
   ('vpr-m-semdidatica', 'Sem Didática para Jogar', 'volei-praia-masc', 'Grupo C', 'M-C1', 'campus-samambaia', 'semdidatica'),
   ('vpr-m-gatopreto', 'Gato Preto - CCEI', 'volei-praia-masc', 'Grupo C', 'M-C2', 'campus-ceilandia', 'gatopreto'),
   ('vpr-m-sand', 'Sand', 'volei-praia-masc', 'Grupo C', 'M-C3', 'campus-riacho-fundo', 'sand'),
+  ('vpr-m-gama', 'Gama Areia', 'volei-praia-masc', 'Grupo D', 'M-D1', 'campus-gama', 'gama'),
+  ('vpr-m-planaltina', 'Planaltina Beach', 'volei-praia-masc', 'Grupo D', 'M-D2', 'campus-planaltina', 'galaticos'),
 
   -- Futevôlei Masculino (Pontos Corridos)
   ('futv-m-mtbrothers', 'MT Brothers', 'futevolei-masc', 'Pontos Corridos', 'M1', 'campus-taguatinga', 'mtbrothers'),

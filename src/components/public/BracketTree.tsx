@@ -195,14 +195,30 @@ export const BracketTree: React.FC<BracketTreeProps> = ({
               {renderMatchBox(
                 'Semifinal 1',
                 semifinals[0],
-                selectedModalityId.includes('futsal') ? '1º Geral dos Grupos' : '1º Colocado Grupo A / Chave',
-                selectedModalityId.includes('futsal') ? 'Vencedor do Playoff 2ºs' : '2º Colocado Grupo B / Chave'
+                selectedModalityId === 'volei-praia-masc'
+                  ? '1º Colocado Grupo A'
+                  : selectedModalityId.includes('futsal')
+                  ? '1º Geral dos Grupos'
+                  : '1º Colocado Grupo A / Chave',
+                selectedModalityId === 'volei-praia-masc'
+                  ? '1º Colocado Grupo C'
+                  : selectedModalityId.includes('futsal')
+                  ? 'Vencedor do Playoff 2ºs'
+                  : '2º Colocado Grupo B / Chave'
               )}
               {renderMatchBox(
                 'Semifinal 2',
                 semifinals[1],
-                selectedModalityId.includes('futsal') ? '2º Geral dos Grupos' : '1º Colocado Grupo B / Chave',
-                selectedModalityId.includes('futsal') ? '3º Geral dos Grupos' : '2º Colocado Grupo A / Chave'
+                selectedModalityId === 'volei-praia-masc'
+                  ? '1º Colocado Grupo B'
+                  : selectedModalityId.includes('futsal')
+                  ? '2º Geral dos Grupos'
+                  : '1º Colocado Grupo B / Chave',
+                selectedModalityId === 'volei-praia-masc'
+                  ? '1º Colocado Grupo D'
+                  : selectedModalityId.includes('futsal')
+                  ? '3º Geral dos Grupos'
+                  : '2º Colocado Grupo A / Chave'
               )}
             </div>
 

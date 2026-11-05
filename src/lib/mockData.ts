@@ -77,9 +77,9 @@ export const INITIAL_MODALITIES: Modality[] = [
     category: 'Masculino',
     type: 'coletiva',
     stage: 'Geral',
-    format: 'grupos_3',
+    format: 'grupos_4',
     icon: 'Sun',
-    rules_summary: '3 grupos de 3 duplas. Avançam 1ºs de cada grupo + melhor 2º geral por índice técnico para as Semifinais.',
+    rules_summary: '4 grupos (Grupos A, B e C com 3 duplas, Grupo D com 2 duplas). O 1º colocado de cada um dos 4 grupos avança diretamente para as Semifinais.',
     order_index: 6,
   },
   {
@@ -235,6 +235,8 @@ export const INITIAL_TEAMS: CollectiveTeam[] = [
   { id: 'vpr-m-semdidatica', name: 'Sem Didática para Jogar', modality_id: 'volei-praia-masc', group_name: 'Grupo C', campus_id: 'reitoria', avatar_key: 'sem_didatica' },
   { id: 'vpr-m-gatopreto', name: 'Gato Preto - CCEI', modality_id: 'volei-praia-masc', group_name: 'Grupo C', campus_id: 'campus-ceilandia', avatar_key: 'gato_preto' },
   { id: 'vpr-m-sand', name: 'Sand', modality_id: 'volei-praia-masc', group_name: 'Grupo C', campus_id: 'campus-taguatinga', avatar_key: 'sand' },
+  { id: 'vpr-m-gama', name: 'Gama Areia', modality_id: 'volei-praia-masc', group_name: 'Grupo D', campus_id: 'campus-gama', avatar_key: 'gama' },
+  { id: 'vpr-m-planaltina', name: 'Planaltina Beach', modality_id: 'volei-praia-masc', group_name: 'Grupo D', campus_id: 'campus-planaltina', avatar_key: 'galaticos' },
 
   // Futevôlei Masc
   { id: 'futv-m-mt', name: 'MT Brothers', modality_id: 'futevolei-masc', group_name: 'Pontos Corridos', campus_id: 'campus-taguatinga', avatar_key: 'sand' },

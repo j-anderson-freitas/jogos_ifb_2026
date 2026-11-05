@@ -138,7 +138,7 @@ export const IndividualManager: React.FC<IndividualManagerProps> = ({
     if (!newPodium.participant_name) return;
 
     const toSave: IndividualPodium = {
-      id: `podium-${Date.now()}`,
+      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : '00000000-0000-4000-8000-' + Date.now().toString(16).padStart(12, '0'),
       modality_id: newPodium.modality_id || modalities[0]?.id || 'futsal-masc',
       event_category: newPodium.event_category || 'Geral',
       position: (Number(newPodium.position) as 1 | 2 | 3) || 1,
@@ -158,7 +158,7 @@ export const IndividualManager: React.FC<IndividualManagerProps> = ({
     if (!newParticipant.name) return;
 
     const toSave: IndividualParticipant = {
-      id: `participant-${Date.now()}`,
+      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : '00000000-0000-4000-8000-' + Date.now().toString(16).padStart(12, '0'),
       name: newParticipant.name.trim(),
       campus_id: newParticipant.campus_id || campuses[0]?.id || 'campus-brasilia',
       modality_id: newParticipant.modality_id || 'corrida-caminhada',

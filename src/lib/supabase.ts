@@ -296,7 +296,27 @@ export async function deleteTeam(id: string): Promise<boolean> {
   return true;
 }
 
+const isValidUuid = (str: string): boolean => {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+};
+
+const createUuid = (): string => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
 export async function saveParticipant(p: IndividualParticipant): Promise<IndividualParticipant> {
+  // Garante que o ID seja um UUID válido compatível com a coluna UUID do PostgreSQL
+  if (!p.id || !isValidUuid(p.id)) {
+    p.id = createUuid();
+  }
+
   // Salva no armazenamento local primeiro (garantia resiliente imediata)
   const current = getLocal<IndividualParticipant[]>(STORAGE_KEYS.PARTICIPANTS, []);
   const idx = current.findIndex((x) => x.id === p.id);
@@ -306,10 +326,15 @@ export async function saveParticipant(p: IndividualParticipant): Promise<Individ
   if (supabase) {
     try {
       const { data, error } = await supabase.from('individual_participants').upsert(p).select().single();
-      if (!error && data) return data as IndividualParticipant;
-      if (error) console.warn('Supabase saveParticipant avisou:', error.message);
+      if (!error && data) {
+        // Atualiza cache local com a resposta confirmada do banco
+        const synced = updated.map((x) => (x.id === p.id ? (data as IndividualParticipant) : x));
+        setLocal(STORAGE_KEYS.PARTICIPANTS, synced);
+        return data as IndividualParticipant;
+      }
+      if (error) console.error('Supabase saveParticipant falhou:', error.message, error.details);
     } catch (e) {
-      console.warn('Erro ao salvar participante no Supabase:', e);
+      console.error('Erro de rede/conexão ao salvar participante no Supabase:', e);
     }
   }
 
@@ -331,6 +356,11 @@ export async function deleteParticipant(id: string): Promise<boolean> {
 }
 
 export async function savePodium(podium: IndividualPodium): Promise<IndividualPodium> {
+  // Garante UUID válido para pódios
+  if (!podium.id || !isValidUuid(podium.id)) {
+    podium.id = createUuid();
+  }
+
   // Salva no armazenamento local primeiro
   const current = getLocal<IndividualPodium[]>(STORAGE_KEYS.PODIUMS, []);
   const idx = current.findIndex((x) => x.id === podium.id);
@@ -340,10 +370,14 @@ export async function savePodium(podium: IndividualPodium): Promise<IndividualPo
   if (supabase) {
     try {
       const { data, error } = await supabase.from('individual_podiums').upsert(podium).select().single();
-      if (!error && data) return data as IndividualPodium;
-      if (error) console.warn('Supabase savePodium avisou:', error.message);
+      if (!error && data) {
+        const synced = updated.map((x) => (x.id === podium.id ? (data as IndividualPodium) : x));
+        setLocal(STORAGE_KEYS.PODIUMS, synced);
+        return data as IndividualPodium;
+      }
+      if (error) console.error('Supabase savePodium falhou:', error.message, error.details);
     } catch (e) {
-      console.warn('Erro ao salvar pódio no Supabase:', e);
+      console.error('Erro ao salvar pódio no Supabase:', e);
     }
   }
 

@@ -22,6 +22,7 @@ export const TeamManager: React.FC<TeamManagerProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterModality, setFilterModality] = useState('all');
+  const [filterCampus, setFilterCampus] = useState('all');
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingTeam, setEditingTeam] = useState<CollectiveTeam | null>(null);
@@ -64,13 +65,20 @@ export const TeamManager: React.FC<TeamManagerProps> = ({
     'furia',
   ];
 
+  const sortedModalities = modalities
+    .filter((m) => m.type === 'coletiva')
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  const sortedCampuses = [...campuses].sort((a, b) => a.name.localeCompare(b.name));
+
   const filteredTeams = teams.filter((t) => {
     const matchesMod = filterModality === 'all' || t.modality_id === filterModality;
+    const matchesCampus = filterCampus === 'all' || t.campus_id === filterCampus;
     const matchesSearch =
       !searchTerm ||
       t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (t.group_name && t.group_name.toLowerCase().includes(searchTerm.toLowerCase()));
-    return matchesMod && matchesSearch;
+    return matchesMod && matchesCampus && matchesSearch;
   });
 
   const handleCreateSubmit = async (e: React.FormEvent) => {
@@ -154,19 +162,40 @@ export const TeamManager: React.FC<TeamManagerProps> = ({
           className="text-xs sm:text-sm rounded-m3-full bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-m3-primary"
         >
           <option value="all">Todas as Modalidades</option>
-          {modalities
-            .filter((m) => m.type === 'coletiva')
-            .map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name} ({m.category})
-              </option>
-            ))}
+          {sortedModalities.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.name} ({m.category})
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={filterCampus}
+          onChange={(e) => setFilterCampus(e.target.value)}
+          className="text-xs sm:text-sm rounded-m3-full bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-m3-primary"
+        >
+          <option value="all">Todos os Campi</option>
+          {sortedCampuses.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
         </select>
       </div>
 
       {/* Grid de Equipes */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredTeams.map((t) => (
+      {filteredTeams.length === 0 ? (
+        <div className="p-8 text-center bg-m3-surface-container-lowest dark:bg-m3-surface-container-lowest-dark rounded-m3-lg border border-dashed border-m3-outline-variant">
+          <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+            Nenhuma equipe encontrada com os filtros selecionados.
+          </p>
+          <p className="text-xs text-slate-500 mt-1">
+            Tente redefinir os filtros de modalidade, campus ou o termo de busca.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredTeams.map((t) => (
           <M3Card key={t.id} variant="elevated" className="p-4 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
               <TeamAvatar avatarKey={t.avatar_key} name={t.name} size="md" />
@@ -200,6 +229,7 @@ export const TeamManager: React.FC<TeamManagerProps> = ({
           </M3Card>
         ))}
       </div>
+      )}
 
       {/* Modal: Inserir Equipe */}
       <M3Dialog isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="Cadastrar Nova Equipe">
