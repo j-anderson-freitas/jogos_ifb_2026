@@ -83,6 +83,7 @@ export interface DistanceRecord {
   participant_name: string;
   campus_id: string;
   distance_km: number;
+  date?: string;
   category?: 'Servidor' | 'Servidora' | 'Geral';
   created_at?: string;
 }

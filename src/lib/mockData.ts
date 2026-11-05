@@ -1,4 +1,4 @@
-import { Campus, Modality, CollectiveTeam, Match, Regulation, Notice, DistanceRecord } from '../types/database';
+import { Campus, Modality, CollectiveTeam, Match, Regulation, Notice, DistanceRecord, IndividualParticipant, IndividualPodium } from '../types/database';
 import fullRegulations from './fullRegulations.json';
 
 export const INITIAL_CAMPUSES: Campus[] = [
@@ -340,13 +340,32 @@ export const INITIAL_NOTICES: Notice[] = [
   },
 ];
 
+export const INITIAL_PARTICIPANTS: IndividualParticipant[] = [
+  { id: 'part-1', name: 'Carlos Eduardo Mendes', campus_id: 'campus-brasilia', modality_id: 'corrida-caminhada', event_category: 'Servidor', created_at: '2026-11-04T10:00:00Z' },
+  { id: 'part-2', name: 'Juliana Costa Ferreira', campus_id: 'campus-taguatinga', modality_id: 'corrida-caminhada', event_category: 'Servidora', created_at: '2026-11-04T10:00:00Z' },
+  { id: 'part-3', name: 'Marcos Vinícius Silva', campus_id: 'campus-planaltina', modality_id: 'corrida-caminhada', event_category: 'Servidor', created_at: '2026-11-04T10:00:00Z' },
+  { id: 'part-4', name: 'Patrícia Albuquerque', campus_id: 'campus-ceilandia', modality_id: 'corrida-caminhada', event_category: 'Servidora', created_at: '2026-11-04T10:00:00Z' },
+  { id: 'part-5', name: 'Fernando Rocha Lima', campus_id: 'campus-estrutural', modality_id: 'corrida-caminhada', event_category: 'Servidor', created_at: '2026-11-04T10:00:00Z' },
+  { id: 'part-6', name: 'Beatriz Nogueira', campus_id: 'reitoria', modality_id: 'corrida-caminhada', event_category: 'Servidora', created_at: '2026-11-04T10:00:00Z' },
+  { id: 'part-7', name: 'Lucas Guimarães', campus_id: 'campus-gama', modality_id: 'corrida-caminhada', event_category: 'Servidor', created_at: '2026-11-04T10:00:00Z' },
+  { id: 'part-8', name: 'Renata Vasconcelos', campus_id: 'campus-samambaia', modality_id: 'corrida-caminhada', event_category: 'Servidora', created_at: '2026-11-04T10:00:00Z' },
+  { id: 'part-9', name: 'Prof. Alexandre Santos', campus_id: 'campus-brasilia', modality_id: 'xadrez-aberto', event_category: 'Aberto', created_at: '2026-11-04T10:00:00Z' },
+  { id: 'part-10', name: 'Profa. Mariana Costa', campus_id: 'campus-taguatinga', modality_id: 'xadrez-aberto', event_category: 'Aberto', created_at: '2026-11-04T10:00:00Z' },
+  { id: 'part-11', name: 'Rodrigo Medeiros', campus_id: 'campus-ceilandia', modality_id: 'tenis-mesa-individual', event_category: 'Geral', created_at: '2026-11-04T10:00:00Z' },
+];
+
+export const INITIAL_PODIUMS: IndividualPodium[] = [
+  { id: 'pod-1', modality_id: 'xadrez-aberto', event_category: 'Aberto', position: 1, participant_name: 'Prof. Alexandre Santos', campus_id: 'campus-brasilia', created_at: '2026-11-04T12:00:00Z' },
+  { id: 'pod-2', modality_id: 'xadrez-aberto', event_category: 'Aberto', position: 2, participant_name: 'Profa. Mariana Costa', campus_id: 'campus-taguatinga', created_at: '2026-11-04T12:00:00Z' },
+];
+
 export const INITIAL_DISTANCES: DistanceRecord[] = [
-  { id: 'dist-1', participant_name: 'Carlos Eduardo Mendes', campus_id: 'campus-brasilia', distance_km: 18.5, category: 'Servidor', created_at: '2026-11-04T10:00:00Z' },
-  { id: 'dist-2', participant_name: 'Juliana Costa Ferreira', campus_id: 'campus-taguatinga', distance_km: 16.2, category: 'Servidora', created_at: '2026-11-04T10:30:00Z' },
-  { id: 'dist-3', participant_name: 'Marcos Vinícius Silva', campus_id: 'campus-planaltina', distance_km: 15.0, category: 'Servidor', created_at: '2026-11-04T11:00:00Z' },
-  { id: 'dist-4', participant_name: 'Patrícia Albuquerque', campus_id: 'campus-ceilandia', distance_km: 14.8, category: 'Servidora', created_at: '2026-11-04T11:30:00Z' },
-  { id: 'dist-5', participant_name: 'Fernando Rocha Lima', campus_id: 'campus-estrutural', distance_km: 12.4, category: 'Servidor', created_at: '2026-11-04T12:00:00Z' },
-  { id: 'dist-6', participant_name: 'Beatriz Nogueira', campus_id: 'reitoria', distance_km: 11.7, category: 'Servidora', created_at: '2026-11-04T12:30:00Z' },
-  { id: 'dist-7', participant_name: 'Lucas Guimarães', campus_id: 'campus-gama', distance_km: 10.5, category: 'Servidor', created_at: '2026-11-04T13:00:00Z' },
-  { id: 'dist-8', participant_name: 'Renata Vasconcelos', campus_id: 'campus-samambaia', distance_km: 9.8, category: 'Servidora', created_at: '2026-11-04T13:30:00Z' },
+  { id: 'dist-1', participant_name: 'Carlos Eduardo Mendes', campus_id: 'campus-brasilia', distance_km: 18.5, date: '10/11/2026', category: 'Servidor', created_at: '2026-11-04T10:00:00Z' },
+  { id: 'dist-2', participant_name: 'Juliana Costa Ferreira', campus_id: 'campus-taguatinga', distance_km: 16.2, date: '10/11/2026', category: 'Servidora', created_at: '2026-11-04T10:30:00Z' },
+  { id: 'dist-3', participant_name: 'Marcos Vinícius Silva', campus_id: 'campus-planaltina', distance_km: 15.0, date: '11/11/2026', category: 'Servidor', created_at: '2026-11-04T11:00:00Z' },
+  { id: 'dist-4', participant_name: 'Patrícia Albuquerque', campus_id: 'campus-ceilandia', distance_km: 14.8, date: '11/11/2026', category: 'Servidora', created_at: '2026-11-04T11:30:00Z' },
+  { id: 'dist-5', participant_name: 'Fernando Rocha Lima', campus_id: 'campus-estrutural', distance_km: 12.4, date: '12/11/2026', category: 'Servidor', created_at: '2026-11-04T12:00:00Z' },
+  { id: 'dist-6', participant_name: 'Beatriz Nogueira', campus_id: 'reitoria', distance_km: 11.7, date: '12/11/2026', category: 'Servidora', created_at: '2026-11-04T12:30:00Z' },
+  { id: 'dist-7', participant_name: 'Lucas Guimarães', campus_id: 'campus-gama', distance_km: 10.5, date: '13/11/2026', category: 'Servidor', created_at: '2026-11-04T13:00:00Z' },
+  { id: 'dist-8', participant_name: 'Renata Vasconcelos', campus_id: 'campus-samambaia', distance_km: 9.8, date: '13/11/2026', category: 'Servidora', created_at: '2026-11-04T13:30:00Z' },
 ];

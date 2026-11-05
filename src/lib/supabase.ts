@@ -17,7 +17,9 @@ import {
   INITIAL_MATCHES, 
   INITIAL_REGULATIONS, 
   INITIAL_NOTICES,
-  INITIAL_DISTANCES
+  INITIAL_DISTANCES,
+  INITIAL_PARTICIPANTS,
+  INITIAL_PODIUMS
 } from './mockData';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
@@ -167,7 +169,7 @@ export async function getNotices(): Promise<Notice[]> {
 }
 
 export async function getParticipants(): Promise<IndividualParticipant[]> {
-  const localData = getLocal<IndividualParticipant[]>(STORAGE_KEYS.PARTICIPANTS, []);
+  const localData = getLocal<IndividualParticipant[]>(STORAGE_KEYS.PARTICIPANTS, INITIAL_PARTICIPANTS);
   if (supabase) {
     try {
       const { data, error } = await supabase.from('individual_participants').select('*');
@@ -184,7 +186,7 @@ export async function getParticipants(): Promise<IndividualParticipant[]> {
 }
 
 export async function getPodiums(): Promise<IndividualPodium[]> {
-  const localData = getLocal<IndividualPodium[]>(STORAGE_KEYS.PODIUMS, []);
+  const localData = getLocal<IndividualPodium[]>(STORAGE_KEYS.PODIUMS, INITIAL_PODIUMS);
   if (supabase) {
     try {
       const { data, error } = await supabase.from('individual_podiums').select('*');

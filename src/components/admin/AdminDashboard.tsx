@@ -150,7 +150,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 Painel da Comissão Organizadora • JIS-IFB 2026
               </h2>
               <p className="text-xs text-slate-400">
-                Acesso autorizado com senha mestra • Gestão oficial dos jogos
+                Acesso autorizado com senha de administração • Gestão oficial dos jogos
               </p>
             </div>
           </div>
@@ -248,6 +248,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           participants={participants}
           podiums={podiums}
           distances={distances}
+          teams={teams}
           onDataChanged={() => handleDataChangedWithFeedback('Participante / Pódio / Distância')}
         />
       )}

@@ -50,7 +50,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              Senha Mestra da Comissão (.env)
+              Senha de Administração
             </label>
             <div className="relative">
               <KeyRound size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -62,7 +62,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
                   setPassword(e.target.value);
                   setError(false);
                 }}
-                placeholder="Digite a senha mestra..."
+                placeholder="Digite a senha de administração..."
                 className="w-full pl-10 pr-3 py-2.5 rounded-m3-md bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant text-sm focus:outline-none focus:ring-2 focus:ring-m3-primary text-slate-900 dark:text-white"
               />
             </div>

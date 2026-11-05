@@ -173,15 +173,10 @@ export const App: React.FC = () => {
             <span>Jogos de Integração dos Servidores do IFB • JIS-IFB 2026</span>
           </div>
           <p className="text-xs text-slate-500 max-w-xl mx-auto">
-            Promovido pela Pró-Reitoria de Gestão de Pessoas (PRGP) e Diretoria de Qualidade de Vida e Desenvolvimento de Pessoas (DRDP).
-            Integração, saúde e espírito comunitário entre os 10 Campi e a Reitoria do Instituto Federal de Brasília.
+            Promovido pela Pró-Reitoria de Gestão de Pessoas (PRGP).
           </p>
           <div className="text-[11px] text-slate-400 pt-2 border-t border-m3-outline-variant/20 flex flex-col sm:flex-row items-center justify-center gap-4">
             <span>© 2026 Instituto Federal de Brasília (IFB)</span>
-            <span>•</span>
-            <span>Material Design 3 & Motion.dev</span>
-            <span>•</span>
-            <span>Supabase Cloud & Vercel</span>
           </div>
         </div>
       </footer>
