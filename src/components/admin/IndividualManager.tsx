@@ -21,6 +21,7 @@ import {
   Footprints,
   Calendar,
   Users,
+  Pencil,
 } from 'lucide-react';
 
 export interface IndividualManagerProps {
@@ -45,10 +46,17 @@ export const IndividualManager: React.FC<IndividualManagerProps> = ({
   const [activeTab, setActiveTab] = useState<'podiums' | 'participants' | 'distances'>('podiums');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Modais
+  // Modais de Criação
   const [isPodiumModalOpen, setIsPodiumModalOpen] = useState(false);
   const [isParticipantModalOpen, setIsParticipantModalOpen] = useState(false);
   const [isDistanceModalOpen, setIsDistanceModalOpen] = useState(false);
+
+  // Modais e Estados de Edição
+  const [isEditParticipantModalOpen, setIsEditParticipantModalOpen] = useState(false);
+  const [editingParticipant, setEditingParticipant] = useState<IndividualParticipant | null>(null);
+
+  const [isEditDistanceModalOpen, setIsEditDistanceModalOpen] = useState(false);
+  const [editingDistance, setEditingDistance] = useState<DistanceRecord | null>(null);
 
   // Form State Pódio Unificado (Coletivo e Individual)
   const [newPodium, setNewPodium] = useState<Partial<IndividualPodium>>({
@@ -85,6 +93,41 @@ export const IndividualManager: React.FC<IndividualManagerProps> = ({
     category: 'Servidor',
   });
 
+  // Listagens Ordenadas Alfabeticamente (A-Z) para Filtros e Modais
+  const sortedCampuses = useMemo(() => {
+    return [...campuses].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+  }, [campuses]);
+
+  const sortedIndividualModalities = useMemo(() => {
+    return modalities
+      .filter((m) => m.type === 'individual' || m.id === 'corrida-caminhada')
+      .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+  }, [modalities]);
+
+  // Lista de servidores participantes ordenada em ordem alfabética (A-Z)
+  const sortedParticipants = useMemo(() => {
+    return [...participants].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+  }, [participants]);
+
+  // Servidores inscritos na Corrida / Caminhada ordenados em ordem alfabética
+  const runners = useMemo(() => {
+    return participants
+      .filter((p) => p.modality_id === 'corrida-caminhada')
+      .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+  }, [participants]);
+
+  // Registros de distância ordenados por data e servidor
+  const sortedDistances = useMemo(() => {
+    return [...distances].sort((a, b) => {
+      const [dA, mA, yA] = (a.date || '').split('/').map(Number);
+      const [dB, mB, yB] = (b.date || '').split('/').map(Number);
+      const timeA = yA ? new Date(yA, (mA || 1) - 1, dA || 1).getTime() : 0;
+      const timeB = yB ? new Date(yB, (mB || 1) - 1, dB || 1).getTime() : 0;
+      if (timeA !== timeB) return timeB - timeA;
+      return a.participant_name.localeCompare(b.participant_name, 'pt-BR');
+    });
+  }, [distances]);
+
   // Modalidade selecionada no pódio
   const selectedPodiumModality = useMemo(() => {
     return modalities.find((m) => m.id === newPodium.modality_id);
@@ -95,19 +138,18 @@ export const IndividualManager: React.FC<IndividualManagerProps> = ({
   // Equipes disponíveis para a modalidade coletiva selecionada
   const availableTeamsForPodium = useMemo(() => {
     if (!newPodium.modality_id || !isSelectedModalityCollective) return [];
-    return teams.filter((t) => t.modality_id === newPodium.modality_id);
+    return teams
+      .filter((t) => t.modality_id === newPodium.modality_id)
+      .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
   }, [teams, newPodium.modality_id, isSelectedModalityCollective]);
 
   // Atletas participantes disponíveis para a modalidade individual selecionada
   const availableParticipantsForPodium = useMemo(() => {
     if (!newPodium.modality_id || isSelectedModalityCollective) return [];
-    return participants.filter((p) => p.modality_id === newPodium.modality_id);
+    return participants
+      .filter((p) => p.modality_id === newPodium.modality_id)
+      .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
   }, [participants, newPodium.modality_id, isSelectedModalityCollective]);
-
-  // Servidores inscritos na Corrida / Caminhada
-  const runners = useMemo(() => {
-    return participants.filter((p) => p.modality_id === 'corrida-caminhada');
-  }, [participants]);
 
   // Ao mudar a modalidade no pódio, reseta o nome e vincula o primeiro item disponível
   const handlePodiumModalityChange = (modalityId: string) => {
@@ -172,12 +214,50 @@ export const IndividualManager: React.FC<IndividualManagerProps> = ({
     onDataChanged();
   };
 
+  const handleOpenEditParticipant = (p: IndividualParticipant) => {
+    setEditingParticipant({ ...p });
+    setIsEditParticipantModalOpen(true);
+  };
+
+  const handleEditParticipantSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingParticipant || !editingParticipant.name.trim()) return;
+
+    const originalParticipant = participants.find((p) => p.id === editingParticipant.id);
+    const updatedParticipant: IndividualParticipant = {
+      ...editingParticipant,
+      name: editingParticipant.name.trim(),
+      campus_id: editingParticipant.campus_id || campuses[0]?.id || 'campus-brasilia',
+      modality_id: editingParticipant.modality_id || 'corrida-caminhada',
+      event_category: editingParticipant.event_category?.trim() || 'Geral',
+    };
+
+    await saveParticipant(updatedParticipant);
+
+    // Se o nome ou campus do participante foi atualizado, propaga para os registros de distância vinculados
+    if (originalParticipant && (originalParticipant.name.trim() !== updatedParticipant.name || originalParticipant.campus_id !== updatedParticipant.campus_id)) {
+      const oldName = originalParticipant.name.trim();
+      const matchingDistances = distances.filter((d) => d.participant_name.trim() === oldName);
+      for (const dist of matchingDistances) {
+        await saveDistance({
+          ...dist,
+          participant_name: updatedParticipant.name,
+          campus_id: updatedParticipant.campus_id,
+        });
+      }
+    }
+
+    setIsEditParticipantModalOpen(false);
+    setEditingParticipant(null);
+    onDataChanged();
+  };
+
   const handleDistanceSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newDistance.participant_name || !newDistance.distance_km) return;
 
     const toSave: DistanceRecord = {
-      id: `dist-${Date.now()}`,
+      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `dist-${Date.now()}`,
       participant_name: newDistance.participant_name.trim(),
       campus_id: newDistance.campus_id || campuses[0]?.id || 'campus-brasilia',
       distance_km: Number(newDistance.distance_km) || 0,
@@ -193,6 +273,30 @@ export const IndividualManager: React.FC<IndividualManagerProps> = ({
       distance_km: 5.0,
       date: todayFormatted,
     });
+    onDataChanged();
+  };
+
+  const handleOpenEditDistance = (d: DistanceRecord) => {
+    setEditingDistance({ ...d });
+    setIsEditDistanceModalOpen(true);
+  };
+
+  const handleEditDistanceSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingDistance || !editingDistance.participant_name || !editingDistance.distance_km) return;
+
+    const updatedDistance: DistanceRecord = {
+      ...editingDistance,
+      participant_name: editingDistance.participant_name.trim(),
+      campus_id: editingDistance.campus_id || campuses[0]?.id || 'campus-brasilia',
+      distance_km: Number(editingDistance.distance_km) || 0,
+      date: editingDistance.date?.trim() || todayFormatted,
+      category: (editingDistance.category as any) || 'Servidor',
+    };
+
+    await saveDistance(updatedDistance);
+    setIsEditDistanceModalOpen(false);
+    setEditingDistance(null);
     onDataChanged();
   };
 
@@ -431,12 +535,19 @@ export const IndividualManager: React.FC<IndividualManagerProps> = ({
                       <th className="py-2.5 px-3">Modalidade</th>
                       <th className="py-2.5 px-3">Campus</th>
                       <th className="py-2.5 px-3">Categoria</th>
-                      <th className="py-2.5 px-3 text-right">Ação</th>
+                      <th className="py-2.5 px-3 text-right">Ações</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-m3-outline-variant/20">
-                    {participants
-                      .filter((p) => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                    {sortedParticipants
+                      .filter((p) => {
+                        const term = searchTerm.toLowerCase();
+                        return (
+                          p.name.toLowerCase().includes(term) ||
+                          getCampusName(p.campus_id).toLowerCase().includes(term) ||
+                          getModalityName(p.modality_id).toLowerCase().includes(term)
+                        );
+                      })
                       .map((part) => (
                         <tr key={part.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
                           <td className="py-2.5 px-3 font-semibold text-slate-900 dark:text-white">
@@ -450,18 +561,29 @@ export const IndividualManager: React.FC<IndividualManagerProps> = ({
                           <td className="py-2.5 px-3">{getCampusName(part.campus_id)}</td>
                           <td className="py-2.5 px-3 text-slate-400">{part.event_category || 'Geral'}</td>
                           <td className="py-2.5 px-3 text-right">
-                            <button
-                              onClick={async () => {
-                                if (confirm(`Remover participante ${part.name}?`)) {
-                                  await deleteParticipant(part.id);
-                                  onDataChanged();
-                                }
-                              }}
-                              className="p-1 text-rose-600 hover:bg-rose-50 rounded"
-                              title="Remover"
-                            >
-                              <Trash2 size={14} />
-                            </button>
+                            <div className="flex items-center justify-end gap-1">
+                              <button
+                                onClick={() => handleOpenEditParticipant(part)}
+                                className="p-1.5 text-slate-600 dark:text-slate-300 hover:text-m3-primary hover:bg-m3-primary/10 rounded transition-colors"
+                                title="Editar servidor"
+                                aria-label={`Editar ${part.name}`}
+                              >
+                                <Pencil size={14} />
+                              </button>
+                              <button
+                                onClick={async () => {
+                                  if (confirm(`Remover participante ${part.name}?`)) {
+                                    await deleteParticipant(part.id);
+                                    onDataChanged();
+                                  }
+                                }}
+                                className="p-1.5 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded transition-colors"
+                                title="Remover"
+                                aria-label={`Remover ${part.name}`}
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -536,11 +658,11 @@ export const IndividualManager: React.FC<IndividualManagerProps> = ({
                       <th className="py-2.5 px-3">Campus</th>
                       <th className="py-2.5 px-3">Distância do Dia</th>
                       <th className="py-2.5 px-3">Categoria</th>
-                      <th className="py-2.5 px-3 text-right">Ação</th>
+                      <th className="py-2.5 px-3 text-right">Ações</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-m3-outline-variant/20">
-                    {distances.map((d) => (
+                    {sortedDistances.map((d) => (
                       <tr key={d.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
                         <td className="py-2.5 px-3 font-semibold flex items-center gap-1.5 text-slate-900 dark:text-white">
                           <Calendar size={13} className="text-emerald-500" />
@@ -555,18 +677,29 @@ export const IndividualManager: React.FC<IndividualManagerProps> = ({
                         </td>
                         <td className="py-2.5 px-3 text-slate-400">{d.category || 'Servidor'}</td>
                         <td className="py-2.5 px-3 text-right">
-                          <button
-                            onClick={async () => {
-                              if (confirm(`Remover registro de ${d.participant_name} (${d.distance_km} km em ${d.date || 'data não informada'})?`)) {
-                                await deleteDistance(d.id);
-                                onDataChanged();
-                              }
-                            }}
-                            className="p-1 text-rose-600 hover:bg-rose-50 rounded"
-                            title="Remover"
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              onClick={() => handleOpenEditDistance(d)}
+                              className="p-1.5 text-slate-600 dark:text-slate-300 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded transition-colors"
+                              title="Editar registro de quilometragem"
+                              aria-label={`Editar registro de ${d.participant_name}`}
+                            >
+                              <Pencil size={14} />
+                            </button>
+                            <button
+                              onClick={async () => {
+                                if (confirm(`Remover registro de ${d.participant_name} (${d.distance_km} km em ${d.date || 'data não informada'})?`)) {
+                                  await deleteDistance(d.id);
+                                  onDataChanged();
+                                }
+                              }}
+                              className="p-1.5 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded transition-colors"
+                              title="Remover"
+                              aria-label={`Remover registro de ${d.participant_name}`}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -769,7 +902,7 @@ export const IndividualManager: React.FC<IndividualManagerProps> = ({
               placeholder="Ex: Ana Clara Souza"
               value={newParticipant.name}
               onChange={(e) => setNewParticipant({ ...newParticipant, name: e.target.value })}
-              className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant"
+              className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant font-medium"
             />
           </div>
 
@@ -779,9 +912,9 @@ export const IndividualManager: React.FC<IndividualManagerProps> = ({
               <select
                 value={newParticipant.campus_id}
                 onChange={(e) => setNewParticipant({ ...newParticipant, campus_id: e.target.value })}
-                className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant"
+                className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant font-medium"
               >
-                {campuses.map((c) => (
+                {sortedCampuses.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
                   </option>
@@ -793,15 +926,13 @@ export const IndividualManager: React.FC<IndividualManagerProps> = ({
               <select
                 value={newParticipant.modality_id}
                 onChange={(e) => setNewParticipant({ ...newParticipant, modality_id: e.target.value })}
-                className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant"
+                className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant font-medium"
               >
-                {modalities
-                  .filter((m) => m.type === 'individual' || m.id === 'corrida-caminhada')
-                  .map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.name} ({m.category})
-                    </option>
-                  ))}
+                {sortedIndividualModalities.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name} ({m.category})
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -813,7 +944,7 @@ export const IndividualManager: React.FC<IndividualManagerProps> = ({
               placeholder="Ex: Geral, Servidor, 50m Livre..."
               value={newParticipant.event_category}
               onChange={(e) => setNewParticipant({ ...newParticipant, event_category: e.target.value })}
-              className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant"
+              className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant font-medium"
             />
           </div>
 
@@ -826,6 +957,91 @@ export const IndividualManager: React.FC<IndividualManagerProps> = ({
             </M3Button>
           </div>
         </form>
+      </M3Dialog>
+
+      {/* Modal: Editar Servidor Participante */}
+      <M3Dialog
+        isOpen={isEditParticipantModalOpen}
+        onClose={() => {
+          setIsEditParticipantModalOpen(false);
+          setEditingParticipant(null);
+        }}
+        title="Editar Servidor Participante"
+      >
+        {editingParticipant && (
+          <form onSubmit={handleEditParticipantSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold mb-1">Nome Completo do Servidor(a)</label>
+              <input
+                type="text"
+                required
+                placeholder="Ex: Ana Clara Souza"
+                value={editingParticipant.name}
+                onChange={(e) => setEditingParticipant({ ...editingParticipant, name: e.target.value })}
+                className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant font-medium"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold mb-1">Campus de Lotação</label>
+                <select
+                  value={editingParticipant.campus_id}
+                  onChange={(e) => setEditingParticipant({ ...editingParticipant, campus_id: e.target.value })}
+                  className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant font-medium"
+                >
+                  {sortedCampuses.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold mb-1">Modalidade Individual / Corrida</label>
+                <select
+                  value={editingParticipant.modality_id}
+                  onChange={(e) => setEditingParticipant({ ...editingParticipant, modality_id: e.target.value })}
+                  className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant font-medium"
+                >
+                  {sortedIndividualModalities.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.name} ({m.category})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold mb-1">Categoria / Observação</label>
+              <input
+                type="text"
+                placeholder="Ex: Geral, Servidor, 50m Livre..."
+                value={editingParticipant.event_category || ''}
+                onChange={(e) => setEditingParticipant({ ...editingParticipant, event_category: e.target.value })}
+                className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant font-medium"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-m3-outline-variant/30">
+              <M3Button
+                variant="text"
+                size="sm"
+                type="button"
+                onClick={() => {
+                  setIsEditParticipantModalOpen(false);
+                  setEditingParticipant(null);
+                }}
+              >
+                Cancelar
+              </M3Button>
+              <M3Button variant="filled" size="sm" type="submit" disabled={!editingParticipant.name.trim()}>
+                Salvar Alterações
+              </M3Button>
+            </div>
+          </form>
+        )}
       </M3Dialog>
 
       {/* Modal: Lançar KM Diário de Caminhada/Corrida */}
@@ -890,7 +1106,7 @@ export const IndividualManager: React.FC<IndividualManagerProps> = ({
                 value={newDistance.campus_id}
                 className="w-full text-xs p-2 rounded-m3-sm bg-slate-100 dark:bg-slate-800 border border-m3-outline-variant text-slate-500 font-medium"
               >
-                {campuses.map((c) => (
+                {sortedCampuses.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
                   </option>
@@ -946,6 +1162,132 @@ export const IndividualManager: React.FC<IndividualManagerProps> = ({
             </M3Button>
           </div>
         </form>
+      </M3Dialog>
+
+      {/* Modal: Editar Registro de Quilometragem */}
+      <M3Dialog
+        isOpen={isEditDistanceModalOpen}
+        onClose={() => {
+          setIsEditDistanceModalOpen(false);
+          setEditingDistance(null);
+        }}
+        title="Editar Registro de Quilometragem"
+      >
+        {editingDistance && (
+          <form onSubmit={handleEditDistanceSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold mb-1">
+                Servidor(a) Atleta ({runners.length} inscritos na corrida)
+              </label>
+              <select
+                required
+                value={editingDistance.participant_name}
+                onChange={(e) => {
+                  const runner = runners.find((r) => r.name === e.target.value);
+                  setEditingDistance({
+                    ...editingDistance,
+                    participant_name: e.target.value,
+                    campus_id: runner?.campus_id || editingDistance.campus_id,
+                  });
+                }}
+                className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant font-bold"
+              >
+                <option value="">Selecione o servidor inscrito na corrida...</option>
+                {runners.map((r) => (
+                  <option key={r.id} value={r.name}>
+                    {r.name} ({getCampusName(r.campus_id)})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold mb-1">Data da Atividade (dd/mm/aaaa)</label>
+                <div className="relative">
+                  <Calendar size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    required
+                    placeholder="10/11/2026"
+                    value={editingDistance.date || ''}
+                    onChange={(e) => setEditingDistance({ ...editingDistance, date: e.target.value })}
+                    className="w-full pl-8 pr-2 py-2 text-xs rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant font-medium"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold mb-1">Campus</label>
+                <select
+                  disabled
+                  value={editingDistance.campus_id}
+                  className="w-full text-xs p-2 rounded-m3-sm bg-slate-100 dark:bg-slate-800 border border-m3-outline-variant text-slate-500 font-medium"
+                >
+                  {sortedCampuses.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold mb-1">Distância do Dia (em KM)</label>
+                <div className="relative">
+                  <Footprints size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-emerald-500" />
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0.1"
+                    required
+                    placeholder="Ex: 5.2"
+                    value={editingDistance.distance_km}
+                    onChange={(e) =>
+                      setEditingDistance({ ...editingDistance, distance_km: parseFloat(e.target.value) || 0 })
+                    }
+                    className="w-full pl-8 pr-2 py-2 text-xs rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant font-bold text-emerald-600 dark:text-emerald-400"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold mb-1">Categoria</label>
+                <select
+                  value={editingDistance.category || 'Servidor'}
+                  onChange={(e) => setEditingDistance({ ...editingDistance, category: e.target.value as any })}
+                  className="w-full text-xs p-2 rounded-m3-sm bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant"
+                >
+                  <option value="Servidor">Servidor</option>
+                  <option value="Servidora">Servidora</option>
+                  <option value="Geral">Geral</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-m3-outline-variant/30">
+              <M3Button
+                variant="text"
+                size="sm"
+                type="button"
+                onClick={() => {
+                  setIsEditDistanceModalOpen(false);
+                  setEditingDistance(null);
+                }}
+              >
+                Cancelar
+              </M3Button>
+              <M3Button
+                variant="filled"
+                size="sm"
+                type="submit"
+                disabled={!editingDistance.participant_name || !editingDistance.distance_km}
+              >
+                Salvar Alterações
+              </M3Button>
+            </div>
+          </form>
+        )}
       </M3Dialog>
     </div>
   );
