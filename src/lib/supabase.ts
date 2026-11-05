@@ -128,12 +128,15 @@ export async function getMatches(): Promise<Match[]> {
   if (supabase) {
     try {
       const { data, error } = await supabase.from('matches').select('*').order('round');
-      if (!error && data && data.length > 0) return data as Match[];
+      if (!error && data) {
+        setLocal(STORAGE_KEYS.MATCHES, data);
+        return data as Match[];
+      }
     } catch (e) {
-      console.warn('Fallback local para partidas:', e);
+      console.warn('Erro ao consultar matches no Supabase:', e);
     }
   }
-  return getLocal<Match[]>(STORAGE_KEYS.MATCHES, INITIAL_MATCHES);
+  return getLocal<Match[]>(STORAGE_KEYS.MATCHES, []);
 }
 
 export async function getRegulations(): Promise<Regulation[]> {
@@ -146,11 +149,12 @@ export async function getRegulations(): Promise<Regulation[]> {
       }
       // Se tiver menos de 22 seções no banco, sincroniza automaticamente
       if (!error && data && data.length < 22) {
-        console.info('Regulamento incompleto detectado no Supabase. Atualizando para 22 seções...');
+        console.info('Regulamento incompleto detectado no Supabase. Sincronizando 22 seções oficiais...');
         syncRegulationsToSupabase().catch(console.error);
+        return data as Regulation[];
       }
     } catch (e) {
-      console.warn('Fallback local para regulamento:', e);
+      console.warn('Erro ao consultar regulamento no Supabase:', e);
     }
   }
   return getLocal<Regulation[]>(STORAGE_KEYS.REGULATIONS, INITIAL_REGULATIONS);
@@ -160,61 +164,60 @@ export async function getNotices(): Promise<Notice[]> {
   if (supabase) {
     try {
       const { data, error } = await supabase.from('notices').select('*').order('published_at', { ascending: false });
-      if (!error && data && data.length > 0) return data as Notice[];
+      if (!error && data) {
+        setLocal(STORAGE_KEYS.NOTICES, data);
+        return data as Notice[];
+      }
     } catch (e) {
-      console.warn('Fallback local para notícias:', e);
+      console.warn('Erro ao consultar notícias no Supabase:', e);
     }
   }
-  return getLocal<Notice[]>(STORAGE_KEYS.NOTICES, INITIAL_NOTICES);
+  return getLocal<Notice[]>(STORAGE_KEYS.NOTICES, []);
 }
 
 export async function getParticipants(): Promise<IndividualParticipant[]> {
-  const localData = getLocal<IndividualParticipant[]>(STORAGE_KEYS.PARTICIPANTS, INITIAL_PARTICIPANTS);
   if (supabase) {
     try {
       const { data, error } = await supabase.from('individual_participants').select('*');
-      if (!error && data && data.length > 0) {
-        // Atualiza cache local com o banco remoto
+      if (!error && data) {
         setLocal(STORAGE_KEYS.PARTICIPANTS, data);
         return data as IndividualParticipant[];
       }
     } catch (e) {
-      console.warn('Fallback local para participantes:', e);
+      console.warn('Erro ao consultar participantes no Supabase:', e);
     }
   }
-  return localData;
+  return getLocal<IndividualParticipant[]>(STORAGE_KEYS.PARTICIPANTS, []);
 }
 
 export async function getPodiums(): Promise<IndividualPodium[]> {
-  const localData = getLocal<IndividualPodium[]>(STORAGE_KEYS.PODIUMS, INITIAL_PODIUMS);
   if (supabase) {
     try {
       const { data, error } = await supabase.from('individual_podiums').select('*');
-      if (!error && data && data.length > 0) {
+      if (!error && data) {
         setLocal(STORAGE_KEYS.PODIUMS, data);
         return data as IndividualPodium[];
       }
     } catch (e) {
-      console.warn('Fallback local para pódios:', e);
+      console.warn('Erro ao consultar pódios no Supabase:', e);
     }
   }
-  return localData;
+  return getLocal<IndividualPodium[]>(STORAGE_KEYS.PODIUMS, []);
 }
 
 export async function getDistances(): Promise<DistanceRecord[]> {
-  const localData = getLocal<DistanceRecord[]>(STORAGE_KEYS.DISTANCES, INITIAL_DISTANCES);
   if (supabase) {
     try {
       const { data, error } = await supabase.from('distance_records').select('*').order('distance_km', { ascending: false });
-      if (!error && data && data.length > 0) {
+      if (!error && data) {
         setLocal(STORAGE_KEYS.DISTANCES, data);
         return data as DistanceRecord[];
       }
     } catch (e) {
-      console.warn('Fallback local para distâncias:', e);
+      console.warn('Erro ao consultar distâncias no Supabase:', e);
     }
   }
-  return localData;
+  return getLocal<DistanceRecord[]>(STORAGE_KEYS.DISTANCES, []);
 }
 
 // ====================================================================
