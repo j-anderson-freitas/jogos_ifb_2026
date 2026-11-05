@@ -90,10 +90,14 @@ CREATE TABLE IF NOT EXISTS matches (
 
 -- 8. Tabela de Notícias e Avisos Oficiais da Comissão
 CREATE TABLE IF NOT EXISTS notices (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
+  summary TEXT,
   content TEXT NOT NULL,
-  category TEXT DEFAULT 'Geral', -- 'Urgente', 'Técnico', 'Geral'
+  image_url TEXT,
+  author TEXT,
+  category TEXT DEFAULT 'Geral',
+  pinned BOOLEAN DEFAULT false,
   published_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -108,6 +112,17 @@ CREATE TABLE IF NOT EXISTS regulations (
   order_index INT DEFAULT 0
 );
 
+-- 10. Tabela de Registros de Quilometragem (Desafio da Corrida & Caminhada)
+CREATE TABLE IF NOT EXISTS distance_records (
+  id TEXT PRIMARY KEY,
+  participant_name TEXT NOT NULL,
+  campus_id TEXT NOT NULL REFERENCES campuses(id) ON DELETE CASCADE,
+  distance_km NUMERIC(6, 2) NOT NULL DEFAULT 0,
+  date TEXT NOT NULL DEFAULT '',
+  category TEXT DEFAULT 'Servidor',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- ====================================================================
 -- POLÍTICAS DE ROW LEVEL SECURITY (RLS)
 -- Permitir leitura pública irrestrita e operações seguras
@@ -120,6 +135,7 @@ ALTER TABLE individual_podiums ENABLE ROW LEVEL SECURITY;
 ALTER TABLE matches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE regulations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE distance_records ENABLE ROW LEVEL SECURITY;
 
 -- Leitura pública para todos
 CREATE POLICY "Public Read Campuses" ON campuses FOR SELECT USING (true);
@@ -130,6 +146,7 @@ CREATE POLICY "Public Read Podiums" ON individual_podiums FOR SELECT USING (true
 CREATE POLICY "Public Read Matches" ON matches FOR SELECT USING (true);
 CREATE POLICY "Public Read Notices" ON notices FOR SELECT USING (true);
 CREATE POLICY "Public Read Regulations" ON regulations FOR SELECT USING (true);
+CREATE POLICY "Public Read Distance Records" ON distance_records FOR SELECT USING (true);
 
 -- Permissões de escrita (para API anon com checagem no client/admin)
 CREATE POLICY "Allow Write Campuses" ON campuses FOR ALL USING (true);
@@ -140,7 +157,9 @@ CREATE POLICY "Allow Write Podiums" ON individual_podiums FOR ALL USING (true);
 CREATE POLICY "Allow Write Matches" ON matches FOR ALL USING (true);
 CREATE POLICY "Allow Write Notices" ON notices FOR ALL USING (true);
 CREATE POLICY "Allow Write Regulations" ON regulations FOR ALL USING (true);
+CREATE POLICY "Allow Write Distance Records" ON distance_records FOR ALL USING (true);
 
--- Habilitar Realtime para a tabela de Matches
+-- Habilitar Realtime para a tabela de Matches e Distances
 ALTER PUBLICATION supabase_realtime ADD TABLE matches;
+ALTER PUBLICATION supabase_realtime ADD TABLE distance_records;
 
