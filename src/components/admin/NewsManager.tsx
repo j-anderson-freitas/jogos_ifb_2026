@@ -24,6 +24,7 @@ export const NewsManager: React.FC<NewsManagerProps> = ({ notices, onDataChanged
   const [author, setAuthor] = useState('Comissão JIS-IFB');
   const [imageUrl, setImageUrl] = useState('');
   const [isCompressing, setIsCompressing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const resetForm = () => {
     setTitle('');
@@ -90,22 +91,31 @@ export const NewsManager: React.FC<NewsManagerProps> = ({ notices, onDataChanged
     e.preventDefault();
     if (!title.trim() || !content.trim()) return;
 
-    const toSave: Notice = {
-      id: editingNotice ? editingNotice.id : `notice-${Date.now()}`,
-      title: title.trim(),
-      summary: summary.trim(),
-      content: content.trim(),
-      category,
-      author: author.trim(),
-      image_url: imageUrl || undefined,
-      published_at: editingNotice ? editingNotice.published_at : new Date().toISOString(),
-      pinned: category === 'Destaque',
-    };
+    setIsSaving(true);
+    try {
+      const toSave: Notice = {
+        id: editingNotice
+          ? editingNotice.id
+          : (typeof crypto !== 'undefined' && crypto.randomUUID
+              ? crypto.randomUUID()
+              : '00000000-0000-4000-8000-' + Date.now().toString(16).padStart(12, '0')),
+        title: title.trim(),
+        summary: summary.trim(),
+        content: content.trim(),
+        category,
+        author: author.trim(),
+        image_url: imageUrl || undefined,
+        published_at: editingNotice ? editingNotice.published_at : new Date().toISOString(),
+        pinned: category === 'Destaque',
+      };
 
-    await saveNotice(toSave);
-    setIsModalOpen(false);
-    resetForm();
-    onDataChanged();
+      await saveNotice(toSave);
+      setIsModalOpen(false);
+      resetForm();
+      onDataChanged();
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleDelete = async () => {
@@ -306,19 +316,16 @@ export const NewsManager: React.FC<NewsManagerProps> = ({ notices, onDataChanged
           </div>
 
           <div className="flex justify-end gap-2 pt-3 border-t border-m3-outline-variant/30">
-            <M3Button
-              variant="text"
-              size="sm"
-              type="button"
-              onClick={() => {
-                setIsModalOpen(false);
-                resetForm();
-              }}
-            >
+            <M3Button variant="text" size="sm" type="button" disabled={isSaving} onClick={() => {
+              setIsModalOpen(false);
+              resetForm();
+            }}>
               Cancelar
             </M3Button>
-            <M3Button variant="filled" size="sm" type="submit">
-              {editingNotice ? 'Salvar Alterações' : 'Publicar Notícia'}
+            <M3Button variant="filled" size="sm" type="submit" disabled={isSaving || isCompressing}>
+              {isSaving
+                ? (editingNotice ? 'Salvando...' : 'Publicando...')
+                : (editingNotice ? 'Salvar Alterações' : 'Publicar Notícia')}
             </M3Button>
           </div>
         </form>

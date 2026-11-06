@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS matches (
 
 -- 8. Tabela de Notícias e Avisos Oficiais da Comissão
 CREATE TABLE IF NOT EXISTS notices (
-  id TEXT PRIMARY KEY,
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   title TEXT NOT NULL,
   summary TEXT,
   content TEXT NOT NULL,

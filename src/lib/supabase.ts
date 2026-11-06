@@ -22,7 +22,8 @@ import {
   INITIAL_PODIUMS
 } from './mockData';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const rawSupabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseUrl = rawSupabaseUrl.replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 export const isSupabaseConfigured = (): boolean => {
@@ -460,6 +461,11 @@ export async function deleteDistance(id: string): Promise<boolean> {
 }
 
 export async function saveNotice(notice: Notice): Promise<Notice> {
+  // Garante que o ID seja um UUID válido compatível com a coluna UUID do PostgreSQL no Supabase
+  if (!notice.id || !isValidUuid(notice.id)) {
+    notice.id = createUuid();
+  }
+
   const current = getLocal<Notice[]>(STORAGE_KEYS.NOTICES, INITIAL_NOTICES);
   const idx = current.findIndex((n) => n.id === notice.id);
   const updated = idx >= 0 ? current.map((n) => (n.id === notice.id ? notice : n)) : [notice, ...current];
@@ -467,9 +473,17 @@ export async function saveNotice(notice: Notice): Promise<Notice> {
 
   if (supabase) {
     try {
-      await supabase.from('notices').upsert(notice);
+      const { data, error } = await supabase.from('notices').upsert(notice).select().single();
+      if (!error && data) {
+        const synced = updated.map((n) => (n.id === notice.id ? (data as Notice) : n));
+        setLocal(STORAGE_KEYS.NOTICES, synced);
+        return data as Notice;
+      }
+      if (error) {
+        console.error('Supabase saveNotice falhou:', error.message, error.details);
+      }
     } catch (e) {
-      console.warn('Erro ao salvar notícia no Supabase:', e);
+      console.error('Erro ao salvar notícia no Supabase:', e);
     }
   }
 
@@ -482,9 +496,12 @@ export async function deleteNotice(id: string): Promise<boolean> {
 
   if (supabase) {
     try {
-      await supabase.from('notices').delete().eq('id', id);
+      const { error } = await supabase.from('notices').delete().eq('id', id);
+      if (error) {
+        console.error('Supabase deleteNotice falhou:', error.message);
+      }
     } catch (e) {
-      console.warn(e);
+      console.warn('Erro ao deletar notícia no Supabase:', e);
     }
   }
   return true;
