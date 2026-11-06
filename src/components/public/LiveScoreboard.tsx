@@ -54,7 +54,7 @@ export const LiveScoreboard: React.FC<LiveScoreboardProps> = ({
   const [selectedModality, setSelectedModality] = useState<string>('all');
   const [selectedTeam, setSelectedTeam] = useState<string>('all');
   const [selectedVenue, setSelectedVenue] = useState<string>('all');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'Ao Vivo' | 'Finalizado' | 'Agendado'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'Ao Vivo' | 'Finalizado' | 'Agendado' | 'Adiado'>('all');
 
   // Helper para conversão de data/hora para ordenação cronológica estrita
   const parseDateTime = (d?: string, t?: string): number => {
@@ -84,10 +84,27 @@ export const LiveScoreboard: React.FC<LiveScoreboardProps> = ({
   // Se datas da lista estiverem vazias, fornece fallback oficial
   const datesList = availableDates.length > 0 ? availableDates : ['07/11/2026', '10/11/2026', '11/11/2026', '12/11/2026', '13/11/2026', '14/11/2026'];
 
-  // Listas ordenadas alfabeticamente para os filtros
-  const sortedTeams = useMemo(() => {
-    return [...teams].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
-  }, [teams]);
+  // Lista dinâmica de equipes filtradas pela modalidade selecionada e sem nomes repetidos
+  const availableTeamNames = useMemo(() => {
+    // 1. Equipes cadastradas para a modalidade (ou todas se 'all')
+    const relevantTeams = selectedModality === 'all'
+      ? teams
+      : teams.filter((t) => t.modality_id === selectedModality);
+
+    // 2. Nomes de equipes presentes nas partidas correspondentes
+    const matchTeams = matches
+      .filter((m) => selectedModality === 'all' || m.modality_id === selectedModality)
+      .flatMap((m) => [m.team_a_name, m.team_b_name])
+      .filter((name) => Boolean(name && name.trim() && name !== 'A definir'));
+
+    // 3. Unifica e deduplica os nomes
+    const uniqueNames = Array.from(new Set([
+      ...relevantTeams.map((t) => t.name.trim()),
+      ...matchTeams.map((name) => name.trim()),
+    ])).filter(Boolean);
+
+    return uniqueNames.sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }, [teams, matches, selectedModality]);
 
   const sortedModalities = useMemo(() => {
     return [...modalities].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
@@ -267,7 +284,18 @@ export const LiveScoreboard: React.FC<LiveScoreboardProps> = ({
               <select
                 id="filter-modality"
                 value={selectedModality}
-                onChange={(e) => setSelectedModality(e.target.value)}
+                onChange={(e) => {
+                  const newModality = e.target.value;
+                  setSelectedModality(newModality);
+                  if (selectedTeam !== 'all') {
+                    const validTeams = newModality === 'all'
+                      ? teams.map((t) => t.name.trim())
+                      : teams.filter((t) => t.modality_id === newModality).map((t) => t.name.trim());
+                    if (!validTeams.includes(selectedTeam)) {
+                      setSelectedTeam('all');
+                    }
+                  }
+                }}
                 className="w-full text-xs font-semibold rounded-m3-md bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-m3-primary text-slate-800 dark:text-slate-200"
               >
                 <option value="all">Todas as Modalidades</option>
@@ -279,7 +307,7 @@ export const LiveScoreboard: React.FC<LiveScoreboardProps> = ({
               </select>
             </div>
 
-            {/* 3. Equipe / Delegação (Ordenada alfabeticamente) */}
+            {/* 3. Equipe / Delegação (Ordenada alfabeticamente e sem repetições) */}
             <div>
               <label htmlFor="filter-team" className="block text-[11px] font-semibold text-slate-500 mb-1">
                 Equipe / Delegação:
@@ -290,10 +318,12 @@ export const LiveScoreboard: React.FC<LiveScoreboardProps> = ({
                 onChange={(e) => setSelectedTeam(e.target.value)}
                 className="w-full text-xs font-semibold rounded-m3-md bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-m3-primary text-slate-800 dark:text-slate-200"
               >
-                <option value="all">Todas as Equipes</option>
-                {sortedTeams.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
+                <option value="all">
+                  {selectedModality === 'all' ? 'Todas as Equipes' : `Todas as Equipes (${availableTeamNames.length})`}
+                </option>
+                {availableTeamNames.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
                   </option>
                 ))}
               </select>
@@ -334,6 +364,7 @@ export const LiveScoreboard: React.FC<LiveScoreboardProps> = ({
                 <option value="Agendado">Agendado</option>
                 <option value="Ao Vivo">Ao Vivo</option>
                 <option value="Finalizado">Finalizado</option>
+                <option value="Adiado">Adiado</option>
               </select>
             </div>
           </div>

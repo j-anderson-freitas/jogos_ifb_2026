@@ -80,6 +80,7 @@ export interface IndividualPodium {
 
 export interface DistanceRecord {
   id: string;
+  participant_id?: string; // Chave estrangeira para individual_participants(id)
   participant_name: string;
   campus_id: string;
   distance_km: number;

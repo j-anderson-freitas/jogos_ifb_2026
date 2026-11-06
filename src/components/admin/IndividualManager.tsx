@@ -237,10 +237,15 @@ export const IndividualManager: React.FC<IndividualManagerProps> = ({
     // Se o nome ou campus do participante foi atualizado, propaga para os registros de distância vinculados
     if (originalParticipant && (originalParticipant.name.trim() !== updatedParticipant.name || originalParticipant.campus_id !== updatedParticipant.campus_id)) {
       const oldName = originalParticipant.name.trim();
-      const matchingDistances = distances.filter((d) => d.participant_name.trim() === oldName);
+      const matchingDistances = distances.filter(
+        (d) =>
+          (d.participant_id && d.participant_id === updatedParticipant.id) ||
+          d.participant_name.trim() === oldName
+      );
       for (const dist of matchingDistances) {
         await saveDistance({
           ...dist,
+          participant_id: updatedParticipant.id,
           participant_name: updatedParticipant.name,
           campus_id: updatedParticipant.campus_id,
         });
@@ -256,10 +261,13 @@ export const IndividualManager: React.FC<IndividualManagerProps> = ({
     e.preventDefault();
     if (!newDistance.participant_name || !newDistance.distance_km) return;
 
+    const runner = runners.find((r) => r.name === newDistance.participant_name);
+
     const toSave: DistanceRecord = {
       id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `dist-${Date.now()}`,
+      participant_id: runner?.id,
       participant_name: newDistance.participant_name.trim(),
-      campus_id: newDistance.campus_id || campuses[0]?.id || 'campus-brasilia',
+      campus_id: newDistance.campus_id || runner?.campus_id || campuses[0]?.id || 'campus-brasilia',
       distance_km: Number(newDistance.distance_km) || 0,
       date: newDistance.date || todayFormatted,
       category: (newDistance.category as any) || 'Servidor',
@@ -285,10 +293,13 @@ export const IndividualManager: React.FC<IndividualManagerProps> = ({
     e.preventDefault();
     if (!editingDistance || !editingDistance.participant_name || !editingDistance.distance_km) return;
 
+    const runner = runners.find((r) => r.name === editingDistance.participant_name);
+
     const updatedDistance: DistanceRecord = {
       ...editingDistance,
+      participant_id: runner?.id || editingDistance.participant_id,
       participant_name: editingDistance.participant_name.trim(),
-      campus_id: editingDistance.campus_id || campuses[0]?.id || 'campus-brasilia',
+      campus_id: editingDistance.campus_id || runner?.campus_id || campuses[0]?.id || 'campus-brasilia',
       distance_km: Number(editingDistance.distance_km) || 0,
       date: editingDistance.date?.trim() || todayFormatted,
       category: (editingDistance.category as any) || 'Servidor',

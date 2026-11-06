@@ -254,6 +254,7 @@ export const MatchManager: React.FC<MatchManagerProps> = ({
           <option value="Agendado">Agendado</option>
           <option value="Ao Vivo">Ao Vivo</option>
           <option value="Finalizado">Finalizado</option>
+          <option value="Adiado">Adiado</option>
         </select>
       </div>
 

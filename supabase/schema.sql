@@ -115,6 +115,7 @@ CREATE TABLE IF NOT EXISTS regulations (
 -- 10. Tabela de Registros de Quilometragem (Desafio da Corrida & Caminhada)
 CREATE TABLE IF NOT EXISTS distance_records (
   id TEXT PRIMARY KEY,
+  participant_id UUID REFERENCES individual_participants(id) ON DELETE SET NULL,
   participant_name TEXT NOT NULL,
   campus_id TEXT NOT NULL REFERENCES campuses(id) ON DELETE CASCADE,
   distance_km NUMERIC(6, 2) NOT NULL DEFAULT 0,

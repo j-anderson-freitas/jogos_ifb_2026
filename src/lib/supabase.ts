@@ -406,7 +406,21 @@ export async function saveDistance(record: DistanceRecord): Promise<DistanceReco
 
   if (supabase) {
     try {
-      await supabase.from('distance_records').upsert(record);
+      const { error } = await supabase.from('distance_records').upsert(record);
+      if (error) {
+        // Se a coluna participant_id ainda não foi adicionada no Supabase pelo usuário,
+        // realiza fallback para payload sem participant_id para não bloquear a operação.
+        if (
+          error.message?.includes('participant_id') ||
+          (error as any).details?.includes('participant_id') ||
+          error.code === 'PGRST204'
+        ) {
+          const { participant_id, ...recordWithoutFk } = record;
+          await supabase.from('distance_records').upsert(recordWithoutFk);
+        } else {
+          console.warn('Erro ao salvar distância no Supabase:', error.message);
+        }
+      }
     } catch (e) {
       console.warn('Erro ao salvar distância no Supabase:', e);
     }
